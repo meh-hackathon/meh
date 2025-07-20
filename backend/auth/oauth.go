@@ -115,11 +115,9 @@ func (handler *OAuthHandler) HandleRefreshGrant(ctx context.Context, req TokenRe
 		u.id,
 		u.username,
 		u.email,
-		u.firstname,
-		u.lastname,
 		at.refresh_token_expires_at
-	FROM "user" u
-	INNER JOIN auth_token at ON u.id = at.user_id
+	FROM "users" u
+	INNER JOIN auth_tokens at ON u.id = at.user_id
 	WHERE at.refresh_token = $1 and u.deleted_at IS NULL`
 	var rec dbRecord
 	err := db.GetContext(ctx, &rec, query, req.RefreshToken)
@@ -131,7 +129,7 @@ func (handler *OAuthHandler) HandleRefreshGrant(ctx context.Context, req TokenRe
 	}
 
 	if time.Now().After(rec.RefreshTokenExpiresAt) {
-		db.ExecContext(ctx, "DELETE FROM auth_token WHERE access_token = $1", req.RefreshToken)
+		db.ExecContext(ctx, "DELETE FROM auth_tokens WHERE access_token = $1", req.RefreshToken)
 		return TokenResponse{}, ErrTokenExpired.WithApiMessagef("Refresh token for user '%s' has expired at %s", rec.Username, rec.RefreshTokenExpiresAt)
 	}
 
@@ -161,7 +159,7 @@ func CleanupTokensCron() func(context.Context) error {
 
 func cleanupExpiredTokens(ctx context.Context) error {
 	_, err := db.ExecContext(ctx, `
-		DELETE FROM auth_token
+		DELETE FROM auth_tokens
 		WHERE refresh_token_expires_at < NOW()
 	`)
 	if err != nil {

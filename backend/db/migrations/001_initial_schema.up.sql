@@ -16,6 +16,34 @@ CREATE TABLE user_credentials (
     password_hash VARCHAR(255) NOT NULL
 );
 
+CREATE TABLE "roles" (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    name TEXT NOT NULL UNIQUE,
+    description TEXT NULL,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    permissions TEXT[] NOT NULL DEFAULT '{}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NULL
+);
+
+CREATE TABLE users_roles (
+    user_id UUID NOT NULL REFERENCES "users"(id) ON DELETE CASCADE,
+    role_id UUID NOT NULL REFERENCES "roles"(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by UUID NULL REFERENCES "users"(id) ON DELETE SET NULL,
+    PRIMARY KEY (user_id, role_id)
+);
+
+CREATE TABLE auth_tokens (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    user_id UUID NOT NULL REFERENCES "users"(id) ON DELETE CASCADE,
+    access_token TEXT NOT NULL UNIQUE,
+    refresh_token TEXT NOT NULL UNIQUE,
+    access_token_expires_at TIMESTAMPTZ NOT NULL,
+    refresh_token_expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW ()
+);
+
 CREATE TABLE qr_codes (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     owner_id UUID REFERENCES users(id) ON DELETE CASCADE,

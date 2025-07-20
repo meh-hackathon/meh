@@ -5,3 +5,6 @@ DROP TYPE content_type;
 DROP TABLE user_credentials;
 DROP TABLE users;
 DROP TYPE content_type;
+DROP TABLE "roles";
+DROP TABLE users_roles;
+DROP TABLE auth_tokens;
