@@ -21,14 +21,14 @@ import (
 var (
 	ErrNotFound            = apperror.Define("api:not_found", "API endpoint not found").WithStatus(http.StatusNotFound)
 	ErrInternalServerError = apperror.Define("api:internal_server_error", "Internal Server Error").WithStatus(http.StatusInternalServerError)
-	ErrForbidden           = apperror.Define("api:forbidden", "Access denied").WithStatus(http.StatusForbidden)
+	ErrBadRequest          = apperror.Define("api:bad_request", "Bad Request").WithStatus(http.StatusBadRequest)
 )
 
 type Server struct {
-	oauthHandler *auth.OAuthHandler
-	HttpServer   *http.Server
-	ApiMux       *http.ServeMux
-	InternalServer  *http.Server
+	oauthHandler   *auth.OAuthHandler
+	HttpServer     *http.Server
+	ApiMux         *http.ServeMux
+	InternalServer *http.Server
 }
 
 func New() (*Server, error) {
@@ -51,7 +51,6 @@ func New() (*Server, error) {
 
 	// metrics
 	internalMux.Handle("/metrics", promhttp.Handler())
-
 
 	// api
 	apiMux := http.NewServeMux()

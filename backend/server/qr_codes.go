@@ -68,7 +68,7 @@ func (*Server) CreateQrCode(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		logger.Error("Failed to insert QR code", "error", err)
-		httpx.WriteError(w, err)
+		httpx.WriteError(w, ErrInternalServerError.WithCause(err))
 		return
 	}
 
@@ -99,7 +99,7 @@ func (*Server) GetQrCodeById(w http.ResponseWriter, r *http.Request, id types.UU
 	}
 
 	if qrCode.OwnerID.String() != user.ID.String() {
-		httpx.WriteError(w, ErrForbidden.WithMessage("You don't have permission to access this QR code"))
+		httpx.WriteError(w, auth.ErrForbidden.WithMessage("You don't have permission to access this QR code"))
 		return
 	}
 

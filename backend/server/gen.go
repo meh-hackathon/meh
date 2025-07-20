@@ -32,6 +32,45 @@ type AppError struct {
 	Values     *map[string]interface{} `json:"values,omitempty"`
 }
 
+// Content defines model for Content.
+type Content struct {
+	// CreatedAt Creation timestamp
+	CreatedAt time.Time `json:"created_at"`
+
+	// Data Content data
+	Data string `json:"data"`
+
+	// Id Content unique identifier
+	Id openapi_types.UUID `json:"id"`
+
+	// OwnerId ID of the user who owns this content
+	OwnerId openapi_types.UUID `json:"owner_id"`
+
+	// Type Type of content
+	Type string `json:"type"`
+
+	// UpdatedAt Last update timestamp
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// ContentCreateRequest defines model for ContentCreateRequest.
+type ContentCreateRequest struct {
+	// Data Content data
+	Data string `json:"data"`
+
+	// Type Type of content
+	Type string `json:"type"`
+}
+
+// ContentUpdateRequest defines model for ContentUpdateRequest.
+type ContentUpdateRequest struct {
+	// Data Content data
+	Data *string `json:"data,omitempty"`
+
+	// Type Type of content
+	Type *string `json:"type,omitempty"`
+}
+
 // PasswordGrantRequest defines model for PasswordGrantRequest.
 type PasswordGrantRequest struct {
 	// GrantType The grant type for password authentication
@@ -114,6 +153,12 @@ type InternalServerError = AppError
 // Unauthorized defines model for Unauthorized.
 type Unauthorized = AppError
 
+// CreateContentJSONRequestBody defines body for CreateContent for application/json ContentType.
+type CreateContentJSONRequestBody = ContentCreateRequest
+
+// UpdateContentJSONRequestBody defines body for UpdateContent for application/json ContentType.
+type UpdateContentJSONRequestBody = ContentUpdateRequest
+
 // LoginUserJSONRequestBody defines body for LoginUser for application/json ContentType.
 type LoginUserJSONRequestBody = PasswordGrantRequest
 
@@ -122,6 +167,21 @@ type CreateQrCodeJSONRequestBody = QrCodeCreateRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Get all content
+	// (GET /content)
+	GetContentItems(w http.ResponseWriter, r *http.Request)
+	// Create new content
+	// (POST /content)
+	CreateContent(w http.ResponseWriter, r *http.Request)
+	// Delete content
+	// (DELETE /content/{id})
+	DeleteContent(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// Get content by ID
+	// (GET /content/{id})
+	GetContentById(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// Update content
+	// (PUT /content/{id})
+	UpdateContent(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
 	// Login with username and password
 	// (POST /login)
 	LoginUser(w http.ResponseWriter, r *http.Request)
@@ -150,6 +210,109 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// GetContentItems operation middleware
+func (siw *ServerInterfaceWrapper) GetContentItems(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetContentItems(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateContent operation middleware
+func (siw *ServerInterfaceWrapper) CreateContent(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateContent(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteContent operation middleware
+func (siw *ServerInterfaceWrapper) DeleteContent(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteContent(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetContentById operation middleware
+func (siw *ServerInterfaceWrapper) GetContentById(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetContentById(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateContent operation middleware
+func (siw *ServerInterfaceWrapper) UpdateContent(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateContent(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // LoginUser operation middleware
 func (siw *ServerInterfaceWrapper) LoginUser(w http.ResponseWriter, r *http.Request) {
@@ -377,6 +540,11 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
+	m.HandleFunc("GET "+options.BaseURL+"/content", wrapper.GetContentItems)
+	m.HandleFunc("POST "+options.BaseURL+"/content", wrapper.CreateContent)
+	m.HandleFunc("DELETE "+options.BaseURL+"/content/{id}", wrapper.DeleteContent)
+	m.HandleFunc("GET "+options.BaseURL+"/content/{id}", wrapper.GetContentById)
+	m.HandleFunc("PUT "+options.BaseURL+"/content/{id}", wrapper.UpdateContent)
 	m.HandleFunc("POST "+options.BaseURL+"/login", wrapper.LoginUser)
 	m.HandleFunc("GET "+options.BaseURL+"/me", wrapper.GetCurrentUser)
 	m.HandleFunc("GET "+options.BaseURL+"/qrcodes", wrapper.GetQrCodes)
