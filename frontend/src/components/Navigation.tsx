@@ -46,7 +46,7 @@ export default function Navbar() {
 	);
 
 	return (
-		<nav class="w-full bg-white/95 backdrop-blur-md border-b border-gray-200/20 sticky top-0 z-50 shadow-sm">
+		<nav class="w-full bg-white/60 backdrop-blur-md border-b border-gray-200/20 sticky top-0 z-50 shadow-sm">
 		    <Modal isOpen={showLoginModal()} onClose={() => setShowLoginModal(false)} title="Sign In">
                 <LoginModal close={() => setShowLoginModal(false)} />
             </Modal>
