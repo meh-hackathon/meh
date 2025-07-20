@@ -2,21 +2,25 @@
 version: "3"
 
 tasks:
+  install:
+    cmds:
+      - "brew install pre-commit go-task"
+
   lint:
     cmds:
       - "pre-commit run --all-files"
 
   test:
     cmds:
-      - "go test ./... -tags=test"
+      - "go test -C backend ./... -tags=test"
 
   run:
     cmds:
-      - "go run main.go {{ .CLI_ARGS }}"
+      - "go run -C backend ./..."
 
   build:
     cmds:
-      - "go build"
+      - "go build -C backend ./..."
 
   build-image:
     cmds:
@@ -25,10 +29,6 @@ tasks:
   test-release-goreleaser:
     cmds:
       - "goreleaser release --snapshot --clean"
-
-  test-version-ldflags:
-    cmds:
-      - "go run -ldflags '-s -w -X github.com/erNail/labdoc/cmd.version=v1.2.3' main.go --version"
 
   test-github-actions:
     cmds:

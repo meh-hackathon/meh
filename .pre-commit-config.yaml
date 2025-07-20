@@ -20,6 +20,11 @@ repos:
       - id: "destroyed-symlinks"
       - id: "forbid-submodules"
 
+  - repo: "https://github.com/gitleaks/gitleaks"
+    rev: "v8.24.2"
+    hooks:
+      - id: "gitleaks"
+
   - repo: "https://github.com/golangci/golangci-lint"
     rev: "v2.1.6"
     hooks:
