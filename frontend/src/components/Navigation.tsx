@@ -1,7 +1,7 @@
 import { createSignal, onCleanup, Show } from "solid-js";
 import { useUser } from "../stores/user";
 import { Modal } from "./Modal";
-import LoginModal from "./modals/LoginModal";
+import {LoginModal} from "./modals/LoginModal";
 
 export default function  Navbar () {
     const {user, logout} = useUser
@@ -38,7 +38,7 @@ export default function  Navbar () {
 
 	return (
 		<nav class="w-full bg-white/95 backdrop-blur-md border-b border-gray-200/20 sticky top-0 z-50 shadow-sm">
-		    <Modal isOpen={showLoginModal()} onClose={() => setShowLoginModal(false)}>
+		    <Modal isOpen={showLoginModal()} onClose={() => setShowLoginModal(false)} title="Sign In">
                 <LoginModal />
             </Modal>
 			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -47,11 +47,11 @@ export default function  Navbar () {
 					<div class="flex-shrink-0 flex items-center">
 						<div class="group cursor-pointer">
 							<div class="flex items-center space-x-2 transition-all duration-300 group-hover:scale-105">
-								<div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
-									<span class="text-white font-bold text-xl">A</span>
+								<div class="w-15 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+									<span class="text-white font-bold text-xl">MEH</span>
 								</div>
-								<span class="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-									AppName
+								<span class="text-xs font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+								by us
 								</span>
 							</div>
 						</div>

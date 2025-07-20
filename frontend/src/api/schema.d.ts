@@ -171,7 +171,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PasswordGrantRequest"];
+                "application/json": components["schemas"]["TokenRequest"];
             };
         };
         responses: {

@@ -10,6 +10,7 @@
     "generate": "openapi-typescript ../backend/openapi.yml -o ./src/api/schema.d.ts"
   },
   "dependencies": {
+    "@solidjs/router": "^0.15.3",
     "@tailwindcss/vite": "^4.1.11",
     "openapi-fetch": "^0.14.0",
     "solid-js": "^1.9.7",
