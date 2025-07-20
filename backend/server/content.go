@@ -39,7 +39,7 @@ func (s *Server) CreateContent(w http.ResponseWriter, r *http.Request) {
 
 	var content db.Content
 	err = db.Get(&content,
-		`INSERT INTO content (owner_id, type, data)
+		`INSERT INTO contents (owner_id, type, data)
 		VALUES ($1, $2, $3)
 		RETURNING id, owner_id, created_at, updated_at, type, data`,
 		user.ID,
@@ -67,7 +67,7 @@ func (s *Server) GetContentById(w http.ResponseWriter, r *http.Request, id types
 	var content db.Content
 	err = db.Get(&content,
 		`SELECT id, owner_id, created_at, updated_at, type, data
-		FROM content
+		FROM contents
 		WHERE id = $1
 		AND deleted_at IS NULL`,
 		id,
@@ -103,7 +103,7 @@ func (s *Server) GetContentItems(w http.ResponseWriter, r *http.Request) {
 	err = db.Select(
 		&contentItems,
 		`SELECT id, owner_id, created_at, updated_at, type, data
-		FROM content
+		FROM contents
 		WHERE owner_id = $1
 		AND deleted_at IS NULL
 		ORDER BY created_at DESC`,
@@ -129,7 +129,7 @@ func (s *Server) UpdateContent(w http.ResponseWriter, r *http.Request, id types.
 
 	var existingContent db.Content
 	err = db.Get(&existingContent,
-		`SELECT id, owner_id FROM content WHERE id = $1 AND deleted_at IS NULL`,
+		`SELECT id, owner_id FROM contents WHERE id = $1 AND deleted_at IS NULL`,
 		id,
 	)
 
@@ -155,7 +155,7 @@ func (s *Server) UpdateContent(w http.ResponseWriter, r *http.Request, id types.
 		return
 	}
 
-	query := "UPDATE content SET updated_at = NOW()"
+	query := "UPDATE contents SET updated_at = NOW()"
 	params := []interface{}{}
 	paramIndex := 1
 
@@ -196,7 +196,7 @@ func (s *Server) DeleteContent(w http.ResponseWriter, r *http.Request, id types.
 
 	var existingContent db.Content
 	err = db.Get(&existingContent,
-		`SELECT id, owner_id FROM content WHERE id = $1 AND deleted_at IS NULL`,
+		`SELECT id, owner_id FROM contents WHERE id = $1 AND deleted_at IS NULL`,
 		id,
 	)
 
@@ -216,7 +216,7 @@ func (s *Server) DeleteContent(w http.ResponseWriter, r *http.Request, id types.
 	}
 
 	_, err = db.Exec(
-		`UPDATE content SET deleted_at = NOW() WHERE id = $1`,
+		`UPDATE contents SET deleted_at = NOW() WHERE id = $1`,
 		id,
 	)
 
@@ -227,4 +227,201 @@ func (s *Server) DeleteContent(w http.ResponseWriter, r *http.Request, id types.
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// LinkContentToQrCode links a content item to a QR code
+func (s *Server) LinkContentToQrCode(w http.ResponseWriter, r *http.Request, qrCodeId types.UUID) {
+	user, err := auth.GetUser(r.Context())
+	if err != nil {
+		httpx.WriteError(w, err)
+		return
+	}
+
+	body, err := httpx.ParseReqBody[LinkContentRequest](r)
+	if err != nil {
+		httpx.WriteError(w, err)
+		return
+	}
+
+	contentId := body.ContentId
+
+	var content db.Content
+	err = db.Get(&content,
+		`SELECT id, owner_id FROM contents WHERE id = $1 AND deleted_at IS NULL`,
+		contentId,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			httpx.WriteError(w, ErrNotFound.WithOrigin().WithMessage("Content not found"))
+		} else {
+			logger.Error("Failed to get content", "error", err)
+			httpx.WriteError(w, ErrInternalServerError.WithOrigin().WithCause(err))
+		}
+		return
+	}
+
+	if content.OwnerID.String() != user.ID.String() {
+		httpx.WriteError(w, auth.ErrForbidden.WithMessage("You don't have permission to access this content"))
+		return
+	}
+
+	var qrCode db.QrCode
+	err = db.Get(&qrCode,
+		`SELECT id, owner_id FROM qr_codes WHERE id = $1 AND deleted_at IS NULL`,
+		qrCodeId,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			httpx.WriteError(w, ErrNotFound.WithOrigin().WithMessage("QR code not found"))
+		} else {
+			logger.Error("Failed to get QR code", "error", err)
+			httpx.WriteError(w, ErrInternalServerError.WithOrigin().WithCause(err))
+		}
+		return
+	}
+
+	if qrCode.OwnerID.String() != user.ID.String() {
+		httpx.WriteError(w, auth.ErrForbidden.WithMessage("You don't have permission to access this QR code"))
+		return
+	}
+
+	_, err = db.Exec(
+		`INSERT INTO qr_code_to_content_relation (qr_code_id, content_id, weight)
+		VALUES ($1, $2, 1)
+		ON CONFLICT (qr_code_id, content_id) DO UPDATE SET weight = EXCLUDED.weight`,
+		qrCodeId,
+		contentId,
+	)
+
+	if err != nil {
+		logger.Error("Failed to link content to QR code", "error", err)
+		httpx.WriteError(w, ErrInternalServerError.WithOrigin().WithCause(err))
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}
+
+// UnlinkContentFromQrCode removes the link between a content item and QR code
+func (s *Server) UnlinkContentFromQrCode(w http.ResponseWriter, r *http.Request, qrCodeId types.UUID) {
+	user, err := auth.GetUser(r.Context())
+	if err != nil {
+		httpx.WriteError(w, err)
+		return
+	}
+
+	body, err := httpx.ParseReqBody[LinkContentRequest](r)
+	if err != nil {
+		httpx.WriteError(w, err)
+		return
+	}
+
+	contentId := body.ContentId
+
+	var content db.Content
+	err = db.Get(&content,
+		`SELECT id, owner_id FROM contents WHERE id = $1 AND deleted_at IS NULL`,
+		contentId,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			httpx.WriteError(w, ErrNotFound.WithOrigin().WithMessage("Content not found"))
+		} else {
+			logger.Error("Failed to get content", "error", err)
+			httpx.WriteError(w, ErrInternalServerError.WithOrigin().WithCause(err))
+		}
+		return
+	}
+
+	if content.OwnerID.String() != user.ID.String() {
+		httpx.WriteError(w, auth.ErrForbidden.WithMessage("You don't have permission to access this content"))
+		return
+	}
+
+	var qrCode db.QrCode
+	err = db.Get(&qrCode,
+		`SELECT id, owner_id FROM qr_codes WHERE id = $1 AND deleted_at IS NULL`,
+		qrCodeId,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			httpx.WriteError(w, ErrNotFound.WithOrigin().WithMessage("QR code not found"))
+		} else {
+			logger.Error("Failed to get QR code", "error", err)
+			httpx.WriteError(w, ErrInternalServerError.WithOrigin().WithCause(err))
+		}
+		return
+	}
+
+	if qrCode.OwnerID.String() != user.ID.String() {
+		httpx.WriteError(w, auth.ErrForbidden.WithMessage("You don't have permission to access this QR code"))
+		return
+	}
+
+	_, err = db.Exec(
+		`DELETE FROM qr_code_to_content_relation WHERE qr_code_id = $1 AND content_id = $2`,
+		qrCodeId,
+		contentId,
+	)
+
+	if err != nil {
+		logger.Error("Failed to unlink content from QR code", "error", err)
+		httpx.WriteError(w, ErrInternalServerError.WithOrigin().WithCause(err))
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GetQrCodeContent retrieves all content linked to a specific QR code
+func (s *Server) GetQrCodeContent(w http.ResponseWriter, r *http.Request, qrCodeId types.UUID) {
+	user, err := auth.GetUser(r.Context())
+	if err != nil {
+		httpx.WriteError(w, err)
+		return
+	}
+
+	var qrCode db.QrCode
+	err = db.Get(&qrCode,
+		`SELECT id, owner_id FROM qr_codes WHERE id = $1 AND deleted_at IS NULL`,
+		qrCodeId,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			httpx.WriteError(w, ErrNotFound.WithOrigin().WithMessage("QR code not found"))
+		} else {
+			logger.Error("Failed to get QR code", "error", err)
+			httpx.WriteError(w, ErrInternalServerError.WithOrigin().WithCause(err))
+		}
+		return
+	}
+
+	if qrCode.OwnerID.String() != user.ID.String() {
+		httpx.WriteError(w, auth.ErrForbidden.WithMessage("You don't have permission to access this QR code"))
+		return
+	}
+
+	contentItems := []db.Content{}
+	err = db.Select(
+		&contentItems,
+		`SELECT c.id, c.owner_id, c.created_at, c.updated_at, c.type, c.data
+		FROM contents c
+		JOIN qr_code_to_content_relation r ON c.id = r.content_id
+		WHERE r.qr_code_id = $1 AND c.deleted_at IS NULL
+		ORDER BY r.weight ASC, c.created_at DESC`,
+		qrCodeId,
+	)
+
+	if err != nil {
+		logger.Error("Failed to get QR code content", "error", err)
+		httpx.WriteError(w, ErrInternalServerError.WithOrigin().WithCause(err))
+		return
+	}
+
+	httpx.WriteJSON(w, http.StatusOK, contentItems)
 }

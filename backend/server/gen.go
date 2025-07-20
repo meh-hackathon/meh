@@ -71,6 +71,12 @@ type ContentUpdateRequest struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// LinkContentRequest defines model for LinkContentRequest.
+type LinkContentRequest struct {
+	// ContentId Content unique identifier to link
+	ContentId openapi_types.UUID `json:"content_id"`
+}
+
 // PasswordGrantRequest defines model for PasswordGrantRequest.
 type PasswordGrantRequest struct {
 	// GrantType The grant type for password authentication
@@ -165,6 +171,12 @@ type LoginUserJSONRequestBody = PasswordGrantRequest
 // CreateQrCodeJSONRequestBody defines body for CreateQrCode for application/json ContentType.
 type CreateQrCodeJSONRequestBody = QrCodeCreateRequest
 
+// UnlinkContentFromQrCodeJSONRequestBody defines body for UnlinkContentFromQrCode for application/json ContentType.
+type UnlinkContentFromQrCodeJSONRequestBody = LinkContentRequest
+
+// LinkContentToQrCodeJSONRequestBody defines body for LinkContentToQrCode for application/json ContentType.
+type LinkContentToQrCodeJSONRequestBody = LinkContentRequest
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Get all content
@@ -194,12 +206,21 @@ type ServerInterface interface {
 	// Create a new QR code
 	// (POST /qrcodes)
 	CreateQrCode(w http.ResponseWriter, r *http.Request)
-	// Get a QR code by Slug
-	// (GET /qrcodes/by-slug/{slug})
-	GetQrCodeBySlug(w http.ResponseWriter, r *http.Request, slug string)
 	// Get a QR code by ID
 	// (GET /qrcodes/{id})
 	GetQrCodeById(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// Unlink content from QR code
+	// (DELETE /qrcodes/{qrCodeId}/content)
+	UnlinkContentFromQrCode(w http.ResponseWriter, r *http.Request, qrCodeId openapi_types.UUID)
+	// Get QR code content
+	// (GET /qrcodes/{qrCodeId}/content)
+	GetQrCodeContent(w http.ResponseWriter, r *http.Request, qrCodeId openapi_types.UUID)
+	// Link content to QR code
+	// (POST /qrcodes/{qrCodeId}/content)
+	LinkContentToQrCode(w http.ResponseWriter, r *http.Request, qrCodeId openapi_types.UUID)
+	// Get a QR code by Slug
+	// (GET /qrcodes/{slug}/by-slug)
+	GetQrCodeBySlug(w http.ResponseWriter, r *http.Request, slug string)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -370,31 +391,6 @@ func (siw *ServerInterfaceWrapper) CreateQrCode(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r)
 }
 
-// GetQrCodeBySlug operation middleware
-func (siw *ServerInterfaceWrapper) GetQrCodeBySlug(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "slug" -------------
-	var slug string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "slug", r.PathValue("slug"), &slug, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "slug", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetQrCodeBySlug(w, r, slug)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
 // GetQrCodeById operation middleware
 func (siw *ServerInterfaceWrapper) GetQrCodeById(w http.ResponseWriter, r *http.Request) {
 
@@ -411,6 +407,106 @@ func (siw *ServerInterfaceWrapper) GetQrCodeById(w http.ResponseWriter, r *http.
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetQrCodeById(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UnlinkContentFromQrCode operation middleware
+func (siw *ServerInterfaceWrapper) UnlinkContentFromQrCode(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "qrCodeId" -------------
+	var qrCodeId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "qrCodeId", r.PathValue("qrCodeId"), &qrCodeId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "qrCodeId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UnlinkContentFromQrCode(w, r, qrCodeId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetQrCodeContent operation middleware
+func (siw *ServerInterfaceWrapper) GetQrCodeContent(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "qrCodeId" -------------
+	var qrCodeId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "qrCodeId", r.PathValue("qrCodeId"), &qrCodeId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "qrCodeId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetQrCodeContent(w, r, qrCodeId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// LinkContentToQrCode operation middleware
+func (siw *ServerInterfaceWrapper) LinkContentToQrCode(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "qrCodeId" -------------
+	var qrCodeId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "qrCodeId", r.PathValue("qrCodeId"), &qrCodeId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "qrCodeId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.LinkContentToQrCode(w, r, qrCodeId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetQrCodeBySlug operation middleware
+func (siw *ServerInterfaceWrapper) GetQrCodeBySlug(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "slug" -------------
+	var slug string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "slug", r.PathValue("slug"), &slug, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "slug", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetQrCodeBySlug(w, r, slug)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -549,8 +645,11 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc("GET "+options.BaseURL+"/me", wrapper.GetCurrentUser)
 	m.HandleFunc("GET "+options.BaseURL+"/qrcodes", wrapper.GetQrCodes)
 	m.HandleFunc("POST "+options.BaseURL+"/qrcodes", wrapper.CreateQrCode)
-	m.HandleFunc("GET "+options.BaseURL+"/qrcodes/by-slug/{slug}", wrapper.GetQrCodeBySlug)
 	m.HandleFunc("GET "+options.BaseURL+"/qrcodes/{id}", wrapper.GetQrCodeById)
+	m.HandleFunc("DELETE "+options.BaseURL+"/qrcodes/{qrCodeId}/content", wrapper.UnlinkContentFromQrCode)
+	m.HandleFunc("GET "+options.BaseURL+"/qrcodes/{qrCodeId}/content", wrapper.GetQrCodeContent)
+	m.HandleFunc("POST "+options.BaseURL+"/qrcodes/{qrCodeId}/content", wrapper.LinkContentToQrCode)
+	m.HandleFunc("GET "+options.BaseURL+"/qrcodes/{slug}/by-slug", wrapper.GetQrCodeBySlug)
 
 	return m
 }

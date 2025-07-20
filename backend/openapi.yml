@@ -139,7 +139,7 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
-  /qrcodes/by-slug/{slug}:
+  /qrcodes/{slug}/by-slug:
     get:
       summary: Get a QR code by Slug
       description: Retrieve a specific QR code by its unique slug
@@ -166,6 +166,125 @@ paths:
           $ref: "#/components/responses/Forbidden"
         404:
           description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /qrcodes/{qrCodeId}/content:
+    get:
+      summary: Get QR code content
+      description: Retrieve all content items linked to a specific QR code
+      operationId: getQrCodeContent
+      tags:
+        - qrcode
+      parameters:
+        - name: qrCodeId
+          in: path
+          description: QR code unique identifier
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Content"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          description: QR code not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      summary: Link content to QR code
+      description: Link a content item to a QR code
+      operationId: linkContentToQrCode
+      tags:
+        - content
+      parameters:
+        - name: qrCodeId
+          in: path
+          description: QR code unique identifier
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkContentRequest"
+      responses:
+        201:
+          description: Content successfully linked to QR code
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          description: Content or QR code not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      summary: Unlink content from QR code
+      description: Remove the link between a content item and QR code
+      operationId: unlinkContentFromQrCode
+      tags:
+        - content
+      parameters:
+        - name: qrCodeId
+          in: path
+          description: QR code unique identifier
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkContentRequest"
+      responses:
+        204:
+          description: Content successfully unlinked from QR code
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          description: Content or QR code not found
           content:
             application/json:
               schema:
@@ -525,3 +644,12 @@ components:
         data:
           type: string
           description: Content data
+
+    LinkContentRequest:
+      type: object
+      properties:
+        content_id:
+          type: string
+          format: uuid
+          description: Content unique identifier to link
+      required: [content_id]
