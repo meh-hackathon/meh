@@ -107,8 +107,6 @@ func (handler *OAuthHandler) HandleRefreshGrant(ctx context.Context, req TokenRe
 		ID                    uuid.UUID `db:"id"`
 		Username              string    `db:"username"`
 		Email                 string    `db:"email"`
-		FirstName             *string   `db:"firstname"`
-		LastName              *string   `db:"lastname"`
 		RefreshTokenExpiresAt time.Time `db:"refresh_token_expires_at"`
 	}
 
@@ -142,10 +140,7 @@ func (handler *OAuthHandler) HandleRefreshGrant(ctx context.Context, req TokenRe
 		Username: rec.Username,
 		Email:    rec.Email,
 		Roles:    []Role{},
-		Metadata: map[string]any{
-			"firstname": rec.FirstName,
-			"lastname":  rec.LastName,
-		},
+		Metadata: map[string]any{},
 	}
 
 	tokenPair, err := handler.generateTokenPair(ctx, &user)

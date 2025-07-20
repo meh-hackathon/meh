@@ -6,7 +6,6 @@
 package server
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -18,11 +17,6 @@ import (
 // Defines values for PasswordGrantRequestGrantType.
 const (
 	Password PasswordGrantRequestGrantType = "password"
-)
-
-// Defines values for RefreshTokenGrantRequestGrantType.
-const (
-	RefreshToken RefreshTokenGrantRequestGrantType = "refresh_token"
 )
 
 // Defines values for Role.
@@ -95,11 +89,6 @@ type Token struct {
 	TokenType string `json:"token_type"`
 }
 
-// TokenRequest defines model for TokenRequest.
-type TokenRequest struct {
-	union json.RawMessage
-}
-
 // User defines model for User.
 type User struct {
 	// Email Email address of the user
@@ -126,69 +115,7 @@ type InternalServerError = AppError
 type Unauthorized = AppError
 
 // LoginUserJSONRequestBody defines body for LoginUser for application/json ContentType.
-type LoginUserJSONRequestBody = TokenRequest
-
-// AsPasswordGrantRequest returns the union data inside the TokenRequest as a PasswordGrantRequest
-func (t TokenRequest) AsPasswordGrantRequest() (PasswordGrantRequest, error) {
-	var body PasswordGrantRequest
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromPasswordGrantRequest overwrites any union data inside the TokenRequest as the provided PasswordGrantRequest
-func (t *TokenRequest) FromPasswordGrantRequest(v PasswordGrantRequest) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergePasswordGrantRequest performs a merge with any union data inside the TokenRequest, using the provided PasswordGrantRequest
-func (t *TokenRequest) MergePasswordGrantRequest(v PasswordGrantRequest) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsRefreshTokenGrantRequest returns the union data inside the TokenRequest as a RefreshTokenGrantRequest
-func (t TokenRequest) AsRefreshTokenGrantRequest() (RefreshTokenGrantRequest, error) {
-	var body RefreshTokenGrantRequest
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromRefreshTokenGrantRequest overwrites any union data inside the TokenRequest as the provided RefreshTokenGrantRequest
-func (t *TokenRequest) FromRefreshTokenGrantRequest(v RefreshTokenGrantRequest) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeRefreshTokenGrantRequest performs a merge with any union data inside the TokenRequest, using the provided RefreshTokenGrantRequest
-func (t *TokenRequest) MergeRefreshTokenGrantRequest(v RefreshTokenGrantRequest) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t TokenRequest) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *TokenRequest) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
+type LoginUserJSONRequestBody = PasswordGrantRequest
 
 // CreateQrCodeJSONRequestBody defines body for CreateQrCode for application/json ContentType.
 type CreateQrCodeJSONRequestBody = QrCodeCreateRequest

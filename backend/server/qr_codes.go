@@ -7,14 +7,16 @@ import (
 	"github.com/oapi-codegen/runtime/types"
 )
 
-func (*API) CreateQrCode(w http.ResponseWriter, r *http.Request) {
+func (*Server) CreateQrCode(w http.ResponseWriter, r *http.Request) {
 	logger.Info("CreateQrCode")
 }
 
-func (*API) GetQrCodeById(q http.ResponseWriter, r *http.Request, uuid types.UUID) {
+func (*Server) GetQrCodeById(w http.ResponseWriter, r *http.Request, uuid types.UUID) {
 	logger.Info("GetQrCode")
 }
 
-func (*API) GetQrCodeBySlug(q http.ResponseWriter, r *http.Request, slug string) {
+func (*Server) GetQrCodeBySlug(w http.ResponseWriter, r *http.Request, slug string) {
 	logger.Info("GetQrCode")
 }
+
+func (*Server) GetQrCodes(w http.ResponseWriter, r *http.Request) {}
