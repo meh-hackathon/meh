@@ -8,7 +8,7 @@ export function ErrorComponent(props: {
 }) {
     const [showDetails, setShowDetails] = createSignal(props.showDetails || false);
 
-    const getErrorTitle = (code: string, statusCode: number): string => {
+    const getErrorTitle = (statusCode: number): string => {
         switch (statusCode) {
             case 400:
                 return "Invalid Request";
@@ -27,7 +27,7 @@ export function ErrorComponent(props: {
         }
     };
 
-    const getErrorDescription = (code: string, statusCode: number): string => {
+    const getErrorDescription = (statusCode: number): string => {
         if (props.error.api_message) {
             return props.error.api_message;
         }
@@ -81,12 +81,12 @@ export function ErrorComponent(props: {
 
             {/* Error Title */}
             <h3 class="text-xl font-semibold text-gray-800 mb-2 text-center">
-                {getErrorTitle(props.error.code, props.error.status_code)}
+                {getErrorTitle(props.error.status_code)}
             </h3>
 
             {/* Error Description */}
             <p class="text-gray-600 text-center mb-6 leading-relaxed">
-                {getErrorDescription(props.error.code, props.error.status_code)}
+                {getErrorDescription(props.error.status_code)}
             </p>
 
             {/* Action Buttons */}
