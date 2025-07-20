@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build --outDir ../backend/server/dist --emptyOutDir true",
+    "build-local": "tsc -b && vite build --outDir ../backend/server/dist --emptyOutDir true",
+    "build-prod": "tsc -b && vite build --outDir ../backend/server/dist --emptyOutDir true --mode prod",
     "preview": "vite preview",
     "generate": "openapi-typescript ../backend/openapi.yml -o ./src/api/schema.d.ts"
   },
