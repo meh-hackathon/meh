@@ -44,6 +44,150 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/qrcodes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all QR codes
+         * @description Retrieve all QR codes belonging to the current user
+         */
+        get: operations["getQrCodes"];
+        put?: never;
+        /**
+         * Create a new QR code
+         * @description Create a new QR code for the current user
+         */
+        post: operations["createQrCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/qrcodes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a QR code by ID
+         * @description Retrieve a specific QR code by its unique identifier
+         */
+        get: operations["getQrCodeById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/qrcodes/{slug}/by-slug": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a QR code by Slug
+         * @description Retrieve a specific QR code by its unique slug
+         */
+        get: operations["getQrCodeBySlug"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/qrcodes/{qrCodeId}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get QR code content
+         * @description Retrieve all content items linked to a specific QR code
+         */
+        get: operations["getQrCodeContent"];
+        put?: never;
+        /**
+         * Link content to QR code
+         * @description Link a content item to a QR code
+         */
+        post: operations["linkContentToQrCode"];
+        /**
+         * Unlink content from QR code
+         * @description Remove the link between a content item and QR code
+         */
+        delete: operations["unlinkContentFromQrCode"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all content
+         * @description Retrieve all content items belonging to the current user
+         */
+        get: operations["getContentItems"];
+        put?: never;
+        /**
+         * Create new content
+         * @description Create a new content item for the current user
+         */
+        post: operations["createContent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/content/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get content by ID
+         * @description Retrieve a specific content item by its unique identifier
+         */
+        get: operations["getContentById"];
+        /**
+         * Update content
+         * @description Update an existing content item
+         */
+        put: operations["updateContent"];
+        post?: never;
+        /**
+         * Delete content
+         * @description Delete (soft-delete) a content item
+         */
+        delete: operations["deleteContent"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -92,7 +236,7 @@ export interface components {
             /** @description The refresh token to use for obtaining a new access token */
             refresh_token: string;
         };
-        TokenRequest: components["schemas"]["PasswordGrantRequest"] | components["schemas"]["RefreshTokenGrantRequest"];
+        GrantRequest: components["schemas"]["PasswordGrantRequest"] | components["schemas"]["RefreshTokenGrantRequest"];
         Token: {
             /** @description The access token for the user */
             access_token: string;
@@ -102,6 +246,79 @@ export interface components {
             expires_in: number;
             /** @description The type of the token (e.g., Bearer) */
             token_type: string;
+        };
+        QrCodeCreateRequest: {
+            /** @description Custom slug for the QR code (optional) */
+            slug?: string;
+        };
+        QrCode: {
+            /**
+             * Format: uuid
+             * @description QR code unique identifier
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description ID of the user who owns this QR code
+             */
+            owner_id: string;
+            /**
+             * Format: date-time
+             * @description Creation timestamp
+             */
+            created_at: string;
+            /**
+             * Format: date-time
+             * @description Last update timestamp
+             */
+            updated_at: string;
+            /** @description Unique slug for accessing this QR code */
+            slug: string;
+        };
+        Content: {
+            /**
+             * Format: uuid
+             * @description Content unique identifier
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description ID of the user who owns this content
+             */
+            owner_id: string;
+            /**
+             * Format: date-time
+             * @description Creation timestamp
+             */
+            created_at: string;
+            /**
+             * Format: date-time
+             * @description Last update timestamp
+             */
+            updated_at: string;
+            /** @description Type of content */
+            type: string;
+            /** @description Content data */
+            data: string;
+        };
+        ContentCreateRequest: {
+            /** @description Type of content */
+            type: string;
+            /** @description Content data */
+            data: string;
+        };
+        ContentUpdateRequest: {
+            /** @description Type of content */
+            type?: string;
+            /** @description Content data */
+            data?: string;
+        };
+        LinkContentRequest: {
+            /**
+             * Format: uuid
+             * @description Content unique identifier to link
+             */
+            content_id: string;
         };
     };
     responses: {
@@ -171,7 +388,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["TokenRequest"];
+                "application/json": components["schemas"]["PasswordGrantRequest"];
             };
         };
         responses: {
@@ -186,6 +403,433 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    getQrCodes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QrCode"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    createQrCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QrCodeCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QrCode"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppError"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    getQrCodeById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description QR code unique identifier */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QrCode"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppError"];
+                };
+            };
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    getQrCodeBySlug: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description QR code unique slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QrCode"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppError"];
+                };
+            };
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    getQrCodeContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description QR code unique identifier */
+                qrCodeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Content"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            /** @description QR code not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppError"];
+                };
+            };
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    linkContentToQrCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description QR code unique identifier */
+                qrCodeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkContentRequest"];
+            };
+        };
+        responses: {
+            /** @description Content successfully linked to QR code */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppError"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            /** @description Content or QR code not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppError"];
+                };
+            };
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    unlinkContentFromQrCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description QR code unique identifier */
+                qrCodeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkContentRequest"];
+            };
+        };
+        responses: {
+            /** @description Content successfully unlinked from QR code */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppError"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            /** @description Content or QR code not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppError"];
+                };
+            };
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    getContentItems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Content"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    createContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContentCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Content"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppError"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    getContentById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Content unique identifier */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Content"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppError"];
+                };
+            };
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    updateContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Content unique identifier */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContentUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Content"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppError"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppError"];
+                };
+            };
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    deleteContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Content unique identifier */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppError"];
+                };
+            };
             500: components["responses"]["InternalServerError"];
         };
     };

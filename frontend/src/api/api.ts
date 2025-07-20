@@ -15,5 +15,7 @@ export const api = createRoot(() => {
 	const login = (body: LoginRequest, opts?: {headers?: Record<string,string>}) => client.POST("/login", { body, headers: opts?.headers });
 	const me = (opts?: {headers?: Record<string,string>}) => client.GET("/me", {headers: opts?.headers});
 
-	return { login, me };
+	const getQrCodes = (opts?: {headers?: Record<string,string>}) => client.GET("/qrcodes", {headers: opts?.headers});
+
+	return { login, me, getQrCodes };
 });

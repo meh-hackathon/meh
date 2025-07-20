@@ -8,7 +8,7 @@ import { useUser } from "../stores/user";
             const {user} = useUser;
             const token = user()?.token;
             if (token) {
-                request.headers.set('Authorization', `Bearer ${token}`);
+                request.headers.set('Authorization', `Bearer ${token.access_token}`);
             }
             return request;
         },

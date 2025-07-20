@@ -40,7 +40,7 @@ export default function Navbar() {
 			}
 			setNavigationItems([
 				{ name: "Home", href: "/" },
-				{ name: "QR Codes", href: "#", hasDropdown: true },
+				{ name: "QR Codes", href: "/qrcodes", hasDropdown: true },
 			]);
 		}),
 	);

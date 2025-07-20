@@ -31,7 +31,7 @@ func (a *LocalAuthenticator) authenticate(ctx context.Context, username, passwor
 	var rec dbRecord
 	query := `SELECT u.id, u.username, u.email, p.password_hash
 	FROM "users" u INNER JOIN user_credentials p ON u.id = p.user_id
-	WHERE username = $1 AND deleted_at IS NULL;`
+	WHERE username = $1 AND u.deleted_at IS NULL;`
 	err := db.GetContext(ctx, &rec, query, username)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrUnauthorized
