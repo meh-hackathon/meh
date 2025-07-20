@@ -1,10 +1,17 @@
-import { createSignal, onCleanup, Show } from "solid-js";
+import { A } from "@solidjs/router";
+import { createEffect, createSignal, For, on, onCleanup, Show } from "solid-js";
 import { useUser } from "../stores/user";
 import { Modal } from "./Modal";
-import {LoginModal} from "./modals/LoginModal";
+import { LoginModal } from "./modals/LoginModal";
 
-export default function  Navbar () {
-    const {user, logout} = useUser
+type NavigationItem = {
+	name: string;
+	href: string;
+	dropdownItems?: { name: string; href: string }[];
+};
+
+export default function Navbar() {
+	const { user, logout } = useUser;
 
 	const [isUserDropdownOpen, setIsUserDropdownOpen] = createSignal(false);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = createSignal(false);
@@ -22,24 +29,26 @@ export default function  Navbar () {
 	document.addEventListener("click", handleClickOutside);
 	onCleanup(() => document.removeEventListener("click", handleClickOutside));
 
-	const navItems = [
-		{ name: "Home", href: "#" },
-		{ name: "Products", href: "#", hasDropdown: true },
-		{ name: "About", href: "#" },
-		{ name: "Contact", href: "#" },
-	];
-
-	const productDropdownItems = [
-		{ name: "Web Apps", href: "#" },
-		{ name: "Mobile Apps", href: "#" },
-		{ name: "Desktop Apps", href: "#" },
-		{ name: "APIs", href: "#" },
-	];
+	const [navigationItems, setNavigationItems] = createSignal<NavigationItem[]>([
+		{ name: "Home", href: "/" },
+	]);
+	createEffect(
+		on(user, (user) => {
+			if (!user) {
+				setNavigationItems([{ name: "Home", href: "#" }]);
+				return;
+			}
+			setNavigationItems([
+				{ name: "Home", href: "/" },
+				{ name: "QR Codes", href: "#", hasDropdown: true },
+			]);
+		}),
+	);
 
 	return (
 		<nav class="w-full bg-white/95 backdrop-blur-md border-b border-gray-200/20 sticky top-0 z-50 shadow-sm">
 		    <Modal isOpen={showLoginModal()} onClose={() => setShowLoginModal(false)} title="Sign In">
-                <LoginModal />
+                <LoginModal close={() => setShowLoginModal(false)} />
             </Modal>
 			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div class="flex justify-between items-center h-16">
@@ -60,14 +69,15 @@ export default function  Navbar () {
 					{/* Desktop Navigation */}
 					<div class="hidden md:block">
 						<div class="ml-10 flex items-baseline space-x-8">
-							{navItems.map((item) => (
+							<For each={navigationItems()}>
+							{item => (
 								<div class="relative group dropdown-container">
 									<a
 										href={item.href}
 										class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-all duration-200 hover:scale-105 flex items-center"
 									>
 										{item.name}
-										<Show when={item.hasDropdown}>
+										<Show when={!!item.dropdownItems}>
 											<svg
 												class="ml-1 h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
 												fill="none"
@@ -85,10 +95,12 @@ export default function  Navbar () {
 									</a>
 
 									{/* Products Dropdown */}
-									<Show when={item.hasDropdown}>
+									<Show when={item.dropdownItems}>
+										{dropdownItems => (
 										<div class="absolute left-0 mt-2 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
 											<div class="py-1" role="menu">
-												{productDropdownItems.map((dropdownItem) => (
+											<For each={dropdownItems()}>
+												{(dropdownItem) => (
 													<a
 														href={dropdownItem.href}
 														class="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 first:rounded-t-xl last:rounded-b-xl"
@@ -96,12 +108,15 @@ export default function  Navbar () {
 													>
 														{dropdownItem.name}
 													</a>
-												))}
+												)}
+												</For>
 											</div>
 										</div>
+										)}
 									</Show>
 								</div>
-							))}
+							)}
+							</For>
 						</div>
 					</div>
 
@@ -154,18 +169,18 @@ export default function  Navbar () {
 									}`}
 								>
 									<div class="py-1" role="menu">
-										<a
+										<A
 											href="#"
 											class="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded-t-xl"
 										>
 											Profile
-										</a>
-										<a
+										</A>
+										<A
 											href="#"
 											class="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
 										>
 											Settings
-										</a>
+										</A>
 										<hr class="my-1 border-gray-200" />
 										<button
 											onClick={() => logout()}
@@ -218,17 +233,19 @@ export default function  Navbar () {
 					}`}
 				>
 					<div class="px-2 pt-2 pb-3 space-y-1 bg-white/90 backdrop-blur-sm rounded-b-xl">
-						{navItems.map((item) => (
-							<a
+					<For each={navigationItems()}>
+                        {item => (
+							<A
 								href={item.href}
 								class="text-gray-700 hover:text-blue-600 hover:bg-blue-50 block px-3 py-2 text-base font-medium rounded-lg transition-colors duration-200"
 							>
 								{item.name}
-							</a>
-						))}
+							</A>
+						)}
+					</For>
 					</div>
 				</div>
 			</div>
 		</nav>
 	);
-};
+}
