@@ -35,6 +35,7 @@ var (
 	DatabasePort     string
 	DatabaseUser     string
 	DatabasePassword string
+	PrometheusPort   int
 )
 
 func Load(envFiles ...string) error {
@@ -58,6 +59,7 @@ func Load(envFiles ...string) error {
 	databasePassword := os.Getenv("DATABASE_PASSWORD")
 	portStr := fallback(os.Getenv("PORT"), "8080")
 	logLevelStr := fallback(os.Getenv("LOG_LEVEL"), "INFO")
+	prometheusPort := fallback(os.Getenv("PROMETHEUS_PORT"), "3000")
 
 	err := errors.Join(
 		mustHaveMinLen(secret, 32, "SECRET"),
@@ -68,6 +70,7 @@ func Load(envFiles ...string) error {
 		mustBeInt(portStr, "PORT"),
 		mustBeValidLogLevel(logLevelStr, "LOG_LEVEL"),
 		mustBeOneOf(env, []string{"prod", "dev"}, "ENV"),
+		mustBeInt(prometheusPort, "PROMETHEUS_PORT"),
 	)
 	if err != nil {
 		return err
@@ -81,6 +84,7 @@ func Load(envFiles ...string) error {
 	DatabasePassword = databasePassword
 	Port, _ = strconv.Atoi(portStr)
 	LogLevel, _ = logger.LevelFromString(logLevelStr)
+	PrometheusPort, _ = strconv.Atoi(prometheusPort)
 
 	return nil
 }

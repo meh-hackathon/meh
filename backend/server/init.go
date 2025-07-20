@@ -13,6 +13,7 @@ import (
 	"github.com/meh-hackathon/meh/config"
 	"github.com/meh-hackathon/meh/httpx"
 	"github.com/meh-hackathon/meh/logger"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 //go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -config ../codegen-conf.yml ../openapi.yml
@@ -27,10 +28,13 @@ type Server struct {
 	oauthHandler *auth.OAuthHandler
 	HttpServer   *http.Server
 	ApiMux       *http.ServeMux
+	InternalServer  *http.Server
 }
 
 func New() (*Server, error) {
 	mux := http.NewServeMux()
+	internalMux := http.NewServeMux()
+
 	srv := &Server{}
 
 	// UI
@@ -44,6 +48,10 @@ func New() (*Server, error) {
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
+
+	// metrics
+	internalMux.Handle("/metrics", promhttp.Handler())
+
 
 	// api
 	apiMux := http.NewServeMux()
@@ -66,6 +74,10 @@ func New() (*Server, error) {
 		Handler: CorsMiddleware(mux),
 	}
 	srv.ApiMux = apiMux
+	srv.InternalServer = &http.Server{
+		Addr:    addr + fmt.Sprintf("%d", config.PrometheusPort),
+		Handler: CorsMiddleware(internalMux),
+	}
 	return srv, nil
 }
 
@@ -73,6 +85,13 @@ func (srv *Server) Start() {
 	go func() {
 		logger.Info("Starting HTTP server", "address", srv.HttpServer.Addr)
 		err := srv.HttpServer.ListenAndServe()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			panic(err)
+		}
+	}()
+	go func() {
+		logger.Info("Starting internal HTTP server", "address", srv.InternalServer.Addr)
+		err := srv.InternalServer.ListenAndServe()
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			panic(err)
 		}
@@ -85,6 +104,10 @@ func (srv *Server) Shutdown() error {
 
 	if err := srv.HttpServer.Shutdown(ctx); err != nil {
 		return fmt.Errorf("HTTP Server shutdown failed: %w", err)
+	}
+
+	if err := srv.InternalServer.Shutdown(ctx); err != nil {
+		return fmt.Errorf("Internal HTTP Server shutdown failed: %w", err)
 	}
 
 	logger.Debug("HTTP Server gracefully stopped")
