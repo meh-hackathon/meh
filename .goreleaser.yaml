@@ -3,7 +3,7 @@ version: 2
 
 before:
   hooks:
-    - "cd backend && go mod tidy"
+    - "sh -c \"cd backend && go mod tidy\""
 
 builds:
   - main: "./backend/cmd/server" 
