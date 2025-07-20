@@ -95,5 +95,5 @@ jobs:
       - name: "Run goreleaser"
         run: "goreleaser release --release-notes release-notes.md --clean"
         env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          GITHUB_TOKEN: "${{ secrets.ORG_TOKEN }}"
 ...
