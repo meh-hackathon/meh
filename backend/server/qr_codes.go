@@ -61,12 +61,12 @@ func (*Server) CreateQrCode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var qrCode db.QrCode
-	err = db.DB.QueryRowx(
+	err = db.Get(&qrCode,
 		"INSERT INTO qr_codes (owner_id, slug, name) VALUES ($1, $2, $3) RETURNING id, owner_id, created_at, updated_at, slug",
 		user.ID,
 		slug,
 		body.Name,
-	).StructScan(&qrCode)
+	)
 
 	if err != nil {
 		logger.Error("Failed to insert QR code", "error", err)
@@ -85,10 +85,11 @@ func (*Server) GetQrCodeById(w http.ResponseWriter, r *http.Request, id types.UU
 	}
 
 	var qrCode db.QrCode
-	err = db.DB.QueryRowx(
+	err = db.Get(
+		&qrCode,
 		"SELECT id, owner_id, created_at, updated_at, slug, name FROM qr_codes WHERE id = $1",
 		id,
-	).StructScan(&qrCode)
+	)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -110,10 +111,10 @@ func (*Server) GetQrCodeById(w http.ResponseWriter, r *http.Request, id types.UU
 
 func (*Server) GetQrCodeBySlug(w http.ResponseWriter, r *http.Request, slug string) {
 	var qrCode db.QrCode
-	err := db.DB.QueryRowx(
+	err := db.Get(&qrCode,
 		"SELECT id, owner_id, created_at, updated_at, slug, name FROM qr_codes WHERE slug = $1 AND deleted_at IS NULL",
 		slug,
-	).StructScan(&qrCode)
+	)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -131,7 +132,7 @@ func (*Server) GetQrCodeBySlug(w http.ResponseWriter, r *http.Request, slug stri
 	}
 
 	var contentItems []ContentWithWeight
-	err = db.DB.Select(
+	err = db.Select(
 		&contentItems,
 		`SELECT c.id, c.owner_id, c.created_at, c.updated_at, c.type, c.data, r.weight
 		FROM contents c
@@ -187,7 +188,7 @@ func (*Server) GetQrCodes(w http.ResponseWriter, r *http.Request) {
 	}
 
 	qrCodes := []db.QrCode{}
-	err = db.DB.Select(
+	err = db.Select(
 		&qrCodes,
 		"SELECT id, owner_id, created_at, updated_at, slug, name FROM qr_codes WHERE owner_id = $1 ORDER BY created_at DESC",
 		user.ID,
