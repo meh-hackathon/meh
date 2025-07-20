@@ -5,31 +5,29 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"net/http"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/meh-hackathon/meh/db"
-	"github.com/meh-hackathon/meh/httpx"
 )
 
 // Based on the grant type the client will send username + password or refresh token
-type tokenRequest struct {
+type TokenRequest struct {
 	GrantType    string `json:"grant_type"`
 	Username     string `json:"username,omitempty"`
 	Password     string `json:"password,omitempty"`
 	RefreshToken string `json:"refresh_token,omitempty"`
 }
 
-type tokenResponse struct {
+type TokenResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 	ExpiresIn    int    `json:"expires_in"`
 	TokenType    string `json:"token_type"`
 }
 
-type oAuthHandler struct {
+type OAuthHandler struct {
 	authenticators []Authenticator
 }
 
@@ -39,50 +37,30 @@ type Authenticator interface {
 	authenticate(ctx context.Context, username, password string) (*User, error)
 }
 
-type OauthOption func(*oAuthHandler) error
+type OauthOption func(*OAuthHandler) error
 
-func OAuthHandler(router *http.ServeMux, opts ...OauthOption) error {
-	handler := &oAuthHandler{}
+func NewOAuthHandler(opts ...OauthOption) (*OAuthHandler, error) {
+	handler := &OAuthHandler{}
 	for _, opt := range opts {
 		if err := opt(handler); err != nil {
-			return fmt.Errorf("failed to apply OAuth option: %w", err)
+			return nil, fmt.Errorf("failed to apply OAuth option: %w", err)
 		}
 	}
 	if len(handler.authenticators) == 0 {
-		panic("auth: at least one authenticator must be set for OAuth handler")
+		return nil, fmt.Errorf("auth: at least one authenticator must be set for OAuth handler")
 	}
 
-	handlerFunc := func(w http.ResponseWriter, r *http.Request) {
-		req, err := httpx.ParseReqBody[tokenRequest](r)
-		if err != nil {
-			httpx.WriteError(w, err)
-			return
-		}
-
-		switch req.GrantType {
-		case "password":
-			handler.handlePasswordGrant(w, r, req)
-		case "refresh_token":
-			handler.handleRefreshGrant(w, r, req)
-		default:
-			httpx.WriteError(w, ErrInvalidToken.WithApiMessagef("Unsupported grant type: %s. Supported types are: password, refresh_token", req.GrantType))
-		}
-	}
-
-	router.HandleFunc("POST /oauth/token", handlerFunc)
-	router.HandleFunc("GET /oauth/user", UserHandler)
-
-	return nil
+	return handler, nil
 }
 
-func (handler *oAuthHandler) handlePasswordGrant(w http.ResponseWriter, r *http.Request, req tokenRequest) {
+func (handler *OAuthHandler) HandlePasswordGrant(ctx context.Context, req TokenRequest) (TokenResponse, error) {
 	// check all authenticators concurrently and check for the first successful authentication
 	type result struct {
 		user *User
 		err  error
 	}
 
-	ctx, cancel := context.WithCancel(r.Context())
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	var wg sync.WaitGroup
@@ -104,8 +82,7 @@ func (handler *oAuthHandler) handlePasswordGrant(w http.ResponseWriter, r *http.
 	var user *User
 	for res := range resultChannel {
 		if res.err != nil && !errors.Is(res.err, ErrUnauthorized) {
-			httpx.WriteError(w, res.err)
-			return
+			return TokenResponse{}, res.err
 		}
 		if res.err == nil && res.user != nil {
 			// If we found a user, cancel the context to stop other goroutines
@@ -115,19 +92,17 @@ func (handler *oAuthHandler) handlePasswordGrant(w http.ResponseWriter, r *http.
 		}
 	}
 	if user == nil {
-		httpx.WriteError(w, ErrUnauthorized.WithApiMessage("invalid credentials"))
-		return
+		return TokenResponse{}, ErrUnauthorized.WithApiMessage("invalid credentials")
 	}
 
-	tokenPair, err := handler.generateTokenPair(r.Context(), user)
+	tokenPair, err := handler.generateTokenPair(ctx, user)
 	if err != nil {
-		httpx.WriteError(w, err)
-		return
+		return TokenResponse{}, err
 	}
-	httpx.WriteJSON(w, http.StatusOK, tokenPair)
+	return tokenPair, nil
 }
 
-func (handler *oAuthHandler) handleRefreshGrant(w http.ResponseWriter, r *http.Request, req tokenRequest) {
+func (handler *OAuthHandler) HandleRefreshGrant(ctx context.Context, req TokenRequest) (TokenResponse, error) {
 	type dbRecord struct {
 		ID                    uuid.UUID `db:"id"`
 		Username              string    `db:"username"`
@@ -149,20 +124,17 @@ func (handler *oAuthHandler) handleRefreshGrant(w http.ResponseWriter, r *http.R
 	INNER JOIN auth_token at ON u.id = at.user_id
 	WHERE at.refresh_token = $1 and u.deleted_at IS NULL`
 	var rec dbRecord
-	err := db.GetContext(r.Context(), &rec, query, req.RefreshToken)
+	err := db.GetContext(ctx, &rec, query, req.RefreshToken)
 	if errors.Is(err, sql.ErrNoRows) {
-		httpx.WriteError(w, ErrUnauthorized)
-		return
+		return TokenResponse{}, ErrInvalidToken.WithApiMessagef("Refresh token '%s' not found", req.RefreshToken)
 	}
 	if err != nil {
-		httpx.WriteError(w, ErrInternal.WithOrigin().WithCause(err).WithMessage("failed to query user"))
-		return
+		return TokenResponse{}, ErrInternal.WithMessage("failed to get user by refresh token").WithOrigin().WithCause(err)
 	}
 
 	if time.Now().After(rec.RefreshTokenExpiresAt) {
-		db.ExecContext(r.Context(), "DELETE FROM auth_token WHERE access_token = $1", req.RefreshToken)
-		httpx.WriteError(w, ErrTokenExpired.WithApiMessagef("Refresh token for user '%s' has expired at %s", rec.Username, rec.RefreshTokenExpiresAt))
-		return
+		db.ExecContext(ctx, "DELETE FROM auth_token WHERE access_token = $1", req.RefreshToken)
+		return TokenResponse{}, ErrTokenExpired.WithApiMessagef("Refresh token for user '%s' has expired at %s", rec.Username, rec.RefreshTokenExpiresAt)
 	}
 
 	user := User{
@@ -176,12 +148,11 @@ func (handler *oAuthHandler) handleRefreshGrant(w http.ResponseWriter, r *http.R
 		},
 	}
 
-	tokenPair, err := handler.generateTokenPair(r.Context(), &user)
+	tokenPair, err := handler.generateTokenPair(ctx, &user)
 	if err != nil {
-		httpx.WriteError(w, err)
-		return
+		return TokenResponse{}, err
 	}
-	httpx.WriteJSON(w, http.StatusOK, tokenPair)
+	return tokenPair, nil
 }
 
 func CleanupTokensCron() func(context.Context) error {

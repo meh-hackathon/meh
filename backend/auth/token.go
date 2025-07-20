@@ -40,10 +40,10 @@ type TokenOptions struct {
 	ID        string
 }
 
-func (handler *oAuthHandler) generateTokenPair(ctx context.Context, user *User) (tokenPair tokenResponse, err error) {
+func (handler *OAuthHandler) generateTokenPair(ctx context.Context, user *User) (tokenPair TokenResponse, err error) {
 	refreshToken, err := generateRefreshToken(32)
 	if err != nil {
-		return tokenResponse{}, err
+		return TokenResponse{}, err
 	}
 
 	id, _ := uuid.NewV7()
@@ -51,7 +51,7 @@ func (handler *oAuthHandler) generateTokenPair(ctx context.Context, user *User) 
 	accessTokenExpiresAt := time.Now().Add(accessTokenLifetime)
 	accessToken, err := generateAccessToken(user, &TokenOptions{ExpiresAt: &accessTokenExpiresAt, ID: id.String()})
 	if err != nil {
-		return tokenResponse{}, err
+		return TokenResponse{}, err
 	}
 
 	id, _ = uuid.NewV7()
@@ -66,7 +66,7 @@ func (handler *oAuthHandler) generateTokenPair(ctx context.Context, user *User) 
 		time.Now().Add(refreshTokenLifetime),
 	)
 	if err != nil {
-		return tokenResponse{}, ErrInternal.WithMessage("failed to insert auth token").WithOrigin().WithCause(err)
+		return TokenResponse{}, ErrInternal.WithMessage("failed to insert auth token").WithOrigin().WithCause(err)
 	}
 
 	_, err = db.ExecContext(
@@ -75,10 +75,10 @@ func (handler *oAuthHandler) generateTokenPair(ctx context.Context, user *User) 
 		user.Id,
 	)
 	if err != nil {
-		return tokenResponse{}, ErrInternal.WithMessage("failed to update user last login").WithOrigin().WithCause(err)
+		return TokenResponse{}, ErrInternal.WithMessage("failed to update user last login").WithOrigin().WithCause(err)
 	}
 
-	return tokenResponse{
+	return TokenResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		ExpiresIn:    int(accessTokenLifetime.Seconds()),

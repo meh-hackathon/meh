@@ -22,12 +22,14 @@ var (
 )
 
 type Server struct {
-	HttpServer *http.Server
-	ApiMux     *http.ServeMux
+	oauthHandler *auth.OAuthHandler
+	HttpServer   *http.Server
+	ApiMux       *http.ServeMux
 }
 
 func New() (*Server, error) {
 	mux := http.NewServeMux()
+	srv := &Server{}
 
 	// UI
 	uiHandler, err := GetUiHandler()
@@ -43,11 +45,10 @@ func New() (*Server, error) {
 
 	// api
 	apiMux := http.NewServeMux()
-	apiMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { httpx.WriteError(w, ErrNotFound) })
-	mux.Handle("/api/", http.StripPrefix("/api", auth.Middleware(config.Secret)(apiMux)))
+	apiMux.Handle("/", Handler(srv))
 
 	// auth
-	err = auth.OAuthHandler(apiMux, auth.WithLocalAuthenticator)
+	srv.oauthHandler, err = auth.NewOAuthHandler(auth.WithLocalAuthenticator)
 	if err != nil {
 		return nil, err
 	}
@@ -57,15 +58,12 @@ func New() (*Server, error) {
 		addr = "127.0.0.1:"
 	}
 
-	srv := &http.Server{
+	srv.HttpServer = &http.Server{
 		Addr:    addr + fmt.Sprintf("%d", config.Port),
 		Handler: CorsMiddleware(mux),
 	}
-
-	return &Server{
-		HttpServer: srv,
-		ApiMux:     apiMux,
-	}, nil
+	srv.ApiMux = apiMux
+	return srv, nil
 }
 
 func (srv *Server) Start() {

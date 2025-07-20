@@ -15,7 +15,7 @@ type LocalAuthenticator struct{}
 
 func NewLocalAuthenticator() *LocalAuthenticator { return &LocalAuthenticator{} }
 
-var WithLocalAuthenticator OauthOption = func(o *oAuthHandler) error {
+var WithLocalAuthenticator OauthOption = func(o *OAuthHandler) error {
 	o.authenticators = append(o.authenticators, &LocalAuthenticator{})
 	return nil
 }
