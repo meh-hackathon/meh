@@ -60,7 +60,7 @@ func mustShutdown(err error) {
 
 func setupLogger(level slog.Level) error {
 	start := time.Now()
-	filename := "logs/somaerp.log.jsonl"
+	filename := "logs/meh.log.jsonl"
 
 	logger.New()
 	logger.SetLevel(level)

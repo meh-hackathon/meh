@@ -1,0 +1,40 @@
+services:
+    dev:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: dev
+        ports:
+            - "8080:8080"
+        environment:
+            DATABASE_URL: postgres://postgres:postgres@db:5432/meh?sslmode=disable
+        env_file: backend/.env.local
+        networks:
+            - app-network
+        dns:
+            - 192.168.1.23
+            - 127.0.0.11
+        volumes:
+            - ./backend:/app/server
+        depends_on:
+            - db
+
+    db:
+        image: postgres:17-alpine
+        restart: always
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: meh
+        ports:
+            - "5432:5432"
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+        networks:
+            - app-network
+
+volumes:
+    pgdata:
+
+networks:
+    app-network:

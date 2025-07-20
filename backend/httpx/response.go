@@ -26,39 +26,39 @@ func WriteJSON(w http.ResponseWriter, status int, v any) {
 }
 
 func WriteError(w http.ResponseWriter, err error) {
-	somaErr, ok := err.(*apperror.AppError)
+	appErr, ok := err.(*apperror.AppError)
 	if !ok {
-		somaErr = apperror.Define("api:internal_error", "An internal error occurred").WithCause(err)
+		appErr = apperror.Define("api:internal_error", "An internal error occurred").WithCause(err)
 	}
 
-	if somaErr.StatusCode == 0 {
-		logger.Error("Error without status code", "error", somaErr)
-		somaErr.StatusCode = http.StatusInternalServerError
+	if appErr.StatusCode == 0 {
+		logger.Error("Error without status code", "error", appErr)
+		appErr.StatusCode = http.StatusInternalServerError
 	}
 
-	if somaErr.StatusCode >= http.StatusInternalServerError {
-		logger.Error("Unhandled error", "error", somaErr)
+	if appErr.StatusCode >= http.StatusInternalServerError {
+		logger.Error("Unhandled error", "error", appErr)
 	}
 
 	if config.Env == config.Dev {
 		cause := ""
-		if somaErr.Cause != nil {
-			cause = somaErr.Cause.Error()
+		if appErr.Cause != nil {
+			cause = appErr.Cause.Error()
 		}
 
 		devErr := devAppError{
-			Code:       somaErr.Code,
-			Message:    somaErr.Message,
-			ApiMessage: somaErr.ApiMessage,
-			Origin:     somaErr.Origin,
-			StatusCode: somaErr.StatusCode,
-			Values:     somaErr.Values,
+			Code:       appErr.Code,
+			Message:    appErr.Message,
+			ApiMessage: appErr.ApiMessage,
+			Origin:     appErr.Origin,
+			StatusCode: appErr.StatusCode,
+			Values:     appErr.Values,
 			Cause:      cause,
 		}
 
-		WriteJSON(w, somaErr.StatusCode, devErr)
+		WriteJSON(w, appErr.StatusCode, devErr)
 		return
 	}
 
-	WriteJSON(w, somaErr.StatusCode, somaErr)
+	WriteJSON(w, appErr.StatusCode, appErr)
 }
