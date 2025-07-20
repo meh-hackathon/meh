@@ -18,4 +18,3 @@ The one and only 'meh' app
 ## Contributing
 
 ## Development
-

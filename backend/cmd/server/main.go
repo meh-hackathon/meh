@@ -67,13 +67,6 @@ func setupLogger(level slog.Level) error {
 	logger.New()
 	logger.SetLevel(level)
 
-	fileLogger, err := logger.NewFileLogger(filename)
-	if err != nil {
-		return err
-	}
-	fileLogger.SetLevel(level)
-	logger.AddLogger(fileLogger)
-
 	logger.Debug("Logger initialized", "filename", filename, "level", level, "took", time.Since(start))
 	return nil
 }

@@ -8,3 +8,5 @@ __debug*
 git-cliff
 git-cliff-*
 release-notes.md
+
+dist/

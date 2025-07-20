@@ -6,7 +6,8 @@ before:
     - "sh -c \"cd backend && go mod tidy\""
 
 builds:
-  - main: "./backend"
+  - dir: "./backend"
+    main: "./cmd/server/"
     env:
       - "CGO_ENABLED=0"
     goos:
@@ -18,7 +19,7 @@ builds:
 
 # Container Image build
 kos:
-  - repository: "oci://ghcr.io/meh-hackathon/meh"
+  - repository: "ghcr.io/meh-hackathon/meh"
     base_image: "alpine:3.22.1"
     tags:
       - "{{ .Version }}"
