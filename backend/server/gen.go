@@ -116,6 +116,12 @@ type QrCodeCreateRequest struct {
 	Slug *string `json:"slug,omitempty"`
 }
 
+// QrCodeWithContent defines model for QrCodeWithContent.
+type QrCodeWithContent struct {
+	Content *Content `json:"content,omitempty"`
+	Qrcode  QrCode   `json:"qrcode"`
+}
+
 // Role defines model for Role.
 type Role string
 

@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"math/big"
+	math_rand "math/rand"
 	"net/http"
 
 	"github.com/meh-hackathon/meh/auth"
@@ -109,21 +110,72 @@ func (*Server) GetQrCodeById(w http.ResponseWriter, r *http.Request, id types.UU
 func (*Server) GetQrCodeBySlug(w http.ResponseWriter, r *http.Request, slug string) {
 	var qrCode db.QrCode
 	err := db.DB.QueryRowx(
-		"SELECT id, owner_id, created_at, updated_at, slug FROM qr_codes WHERE slug = $1",
+		"SELECT id, owner_id, created_at, updated_at, slug FROM qr_codes WHERE slug = $1 AND deleted_at IS NULL",
 		slug,
 	).StructScan(&qrCode)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			httpx.WriteError(w, ErrNotFound.WithMessage("QR code not found"))
+			httpx.WriteError(w, ErrNotFound.WithOrigin().WithMessage("QR code not found"))
 		} else {
 			logger.Error("Failed to get QR code by slug", "error", err)
-			httpx.WriteError(w, ErrInternalServerError.WithCause(err))
+			httpx.WriteError(w, ErrInternalServerError.WithOrigin().WithCause(err))
 		}
 		return
 	}
 
-	httpx.WriteJSON(w, http.StatusOK, qrCode)
+	type ContentWithWeight struct {
+		db.Content
+		Weight int `db:"weight"`
+	}
+
+	var contentItems []ContentWithWeight
+	err = db.DB.Select(
+		&contentItems,
+		`SELECT c.id, c.owner_id, c.created_at, c.updated_at, c.type, c.data, r.weight
+		FROM contents c
+		JOIN qr_code_to_content_relation r ON c.id = r.content_id
+		WHERE r.qr_code_id = $1 AND c.deleted_at IS NULL`,
+		qrCode.ID,
+	)
+
+	if err != nil {
+		logger.Error("Failed to get QR code content", "error", err)
+		httpx.WriteError(w, ErrInternalServerError.WithOrigin().WithCause(err))
+		return
+	}
+
+	type QrCodeWithContent_ struct {
+		QrCode  *db.QrCode
+		Content *db.Content
+	}
+	response := QrCodeWithContent_{
+		QrCode: &qrCode,
+	}
+
+	if len(contentItems) > 0 {
+		totalWeight := 0
+		for _, item := range contentItems {
+			totalWeight += item.Weight
+		}
+
+		if totalWeight > 0 {
+			randomValue := math_rand.Intn(totalWeight)
+
+			currentWeight := 0
+			for _, item := range contentItems {
+				currentWeight += item.Weight
+				if randomValue < currentWeight {
+					response.Content = &item.Content
+					break
+				}
+			}
+		} else {
+			response.Content = &contentItems[0].Content
+		}
+	}
+
+	httpx.WriteJSON(w, http.StatusOK, response)
 }
 
 func (*Server) GetQrCodes(w http.ResponseWriter, r *http.Request) {
