@@ -1,6 +1,9 @@
 ---
 extends: "default"
 
+ignore: |
+  frontend/pnpm-lock.yaml
+
 rules:
   quoted-strings:
     quote-type: "double"

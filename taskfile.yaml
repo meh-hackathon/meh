@@ -4,7 +4,8 @@ version: "3"
 tasks:
   install:
     cmds:
-      - "brew install pre-commit go-task"
+      - "brew install pre-commit pnpm"
+      - "cd frontend && pnpm install"
 
   lint:
     cmds:
