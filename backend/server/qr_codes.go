@@ -86,7 +86,7 @@ func (*Server) GetQrCodeById(w http.ResponseWriter, r *http.Request, id types.UU
 
 	var qrCode db.QrCode
 	err = db.DB.QueryRowx(
-		"SELECT id, owner_id, created_at, updated_at, slug FROM qr_codes WHERE id = $1",
+		"SELECT id, owner_id, created_at, updated_at, slug, name FROM qr_codes WHERE id = $1",
 		id,
 	).StructScan(&qrCode)
 
@@ -111,7 +111,7 @@ func (*Server) GetQrCodeById(w http.ResponseWriter, r *http.Request, id types.UU
 func (*Server) GetQrCodeBySlug(w http.ResponseWriter, r *http.Request, slug string) {
 	var qrCode db.QrCode
 	err := db.DB.QueryRowx(
-		"SELECT id, owner_id, created_at, updated_at, slug FROM qr_codes WHERE slug = $1 AND deleted_at IS NULL",
+		"SELECT id, owner_id, created_at, updated_at, slug, name FROM qr_codes WHERE slug = $1 AND deleted_at IS NULL",
 		slug,
 	).StructScan(&qrCode)
 
@@ -189,7 +189,7 @@ func (*Server) GetQrCodes(w http.ResponseWriter, r *http.Request) {
 	qrCodes := []db.QrCode{}
 	err = db.DB.Select(
 		&qrCodes,
-		"SELECT id, owner_id, created_at, updated_at, slug FROM qr_codes WHERE owner_id = $1 ORDER BY created_at DESC",
+		"SELECT id, owner_id, created_at, updated_at, slug, name FROM qr_codes WHERE owner_id = $1 ORDER BY created_at DESC",
 		user.ID,
 	)
 
