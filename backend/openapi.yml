@@ -569,9 +569,13 @@ components:
     QrCodeCreateRequest:
       type: object
       properties:
+        name:
+          type: string
+          description: Name of the QR code
         slug:
           type: string
           description: Custom slug for the QR code (optional)
+      required: [name]
 
     QrCode:
       type: object

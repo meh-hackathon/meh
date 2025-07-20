@@ -112,6 +112,9 @@ type QrCode struct {
 
 // QrCodeCreateRequest defines model for QrCodeCreateRequest.
 type QrCodeCreateRequest struct {
+	// Name Name of the QR code
+	Name string `json:"name"`
+
 	// Slug Custom slug for the QR code (optional)
 	Slug *string `json:"slug,omitempty"`
 }

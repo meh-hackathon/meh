@@ -62,9 +62,10 @@ func (*Server) CreateQrCode(w http.ResponseWriter, r *http.Request) {
 
 	var qrCode db.QrCode
 	err = db.DB.QueryRowx(
-		"INSERT INTO qr_codes (owner_id, slug) VALUES ($1, $2) RETURNING id, owner_id, created_at, updated_at, slug",
+		"INSERT INTO qr_codes (owner_id, slug, name) VALUES ($1, $2, $3) RETURNING id, owner_id, created_at, updated_at, slug",
 		user.ID,
 		slug,
+		body.Name,
 	).StructScan(&qrCode)
 
 	if err != nil {
