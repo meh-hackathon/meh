@@ -51,8 +51,8 @@ func MustBeUser(ctx context.Context, id uuid.UUID) error {
 	if err != nil {
 		return err
 	}
-	if user.Id != id {
-		return ErrForbidden.WithMessagef("User '%s' does not match required user ID '%s'", user.Id, id).WithOrigin()
+	if user.ID != id {
+		return ErrForbidden.WithMessagef("User '%s' does not match required user ID '%s'", user.ID, id).WithOrigin()
 	}
 	return nil
 }

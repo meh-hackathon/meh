@@ -59,7 +59,7 @@ func (handler *OAuthHandler) generateTokenPair(ctx context.Context, user *User) 
 		ctx,
 		"INSERT INTO auth_token (id, user_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at) VALUES ($1, $2, $3, $4, $5, $6)",
 		id.String(),
-		user.Id,
+		user.ID,
 		accessToken,
 		refreshToken,
 		accessTokenExpiresAt,
@@ -72,7 +72,7 @@ func (handler *OAuthHandler) generateTokenPair(ctx context.Context, user *User) 
 	_, err = db.ExecContext(
 		ctx,
 		`UPDATE "user" SET last_login_at = NOW() WHERE id = $1`,
-		user.Id,
+		user.ID,
 	)
 	if err != nil {
 		return TokenResponse{}, ErrInternal.WithMessage("failed to update user last login").WithOrigin().WithCause(err)
@@ -95,7 +95,7 @@ func generateAccessToken(user *User, options *TokenOptions) (string, error) {
 	}
 
 	claims := &jwtClaims{
-		UserId:   user.Id,
+		UserId:   user.ID,
 		Username: user.Username,
 		Email:    user.Email,
 		Roles:    user.Roles,
@@ -155,7 +155,7 @@ func parseAccessToken(tokenString string) (*User, error) {
 	}
 
 	user := &User{
-		Id:       claims.UserId,
+		ID:       claims.UserId,
 		Username: claims.Username,
 		Email:    claims.Email,
 		Roles:    claims.Roles,

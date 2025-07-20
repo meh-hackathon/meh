@@ -47,7 +47,7 @@ func (a *LocalAuthenticator) authenticate(ctx context.Context, username, passwor
 	}
 
 	user := User{
-		Id:       rec.ID,
+		ID:       rec.ID,
 		Username: rec.Username,
 		Email:    rec.Email,
 		Roles:    []Role{},

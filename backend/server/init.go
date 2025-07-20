@@ -46,6 +46,7 @@ func New() (*Server, error) {
 	// api
 	apiMux := http.NewServeMux()
 	apiMux.Handle("/", Handler(srv))
+	mux.Handle("/api/", http.StripPrefix("/api", auth.Middleware(config.Secret)(apiMux)))
 
 	// auth
 	srv.oauthHandler, err = auth.NewOAuthHandler(auth.WithLocalAuthenticator)

@@ -134,7 +134,7 @@ func (handler *OAuthHandler) HandleRefreshGrant(ctx context.Context, req TokenRe
 	}
 
 	user := User{
-		Id:       rec.ID,
+		ID:       rec.ID,
 		Username: rec.Username,
 		Email:    rec.Email,
 		Roles:    []Role{},
