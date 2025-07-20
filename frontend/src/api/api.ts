@@ -1,7 +1,7 @@
 import createClient from "openapi-fetch";
 import { createRoot } from "solid-js";
 import { authMiddleware } from "./auth";
-import type { LoginRequest } from "./models";
+import type { CreqteQrCodeRequest, LoginRequest } from "./models";
 import type { paths } from "./schema";
 
 
@@ -16,6 +16,7 @@ export const api = createRoot(() => {
 	const me = (opts?: {headers?: Record<string,string>}) => client.GET("/me", {headers: opts?.headers});
 
 	const getQrCodes = (opts?: {headers?: Record<string,string>}) => client.GET("/qrcodes", {headers: opts?.headers});
+	const createQrCode = (body: CreqteQrCodeRequest, opts?: {headers?: Record<string,string>}) => client.POST("/qrcodes", { body, headers: opts?.headers });
 
-	return { login, me, getQrCodes };
+	return { login, me, getQrCodes, createQrCode };
 });

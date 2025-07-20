@@ -248,6 +248,8 @@ export interface components {
             token_type: string;
         };
         QrCodeCreateRequest: {
+            /** @description Name of the QR code */
+            name: string;
             /** @description Custom slug for the QR code (optional) */
             slug?: string;
         };
@@ -257,6 +259,8 @@ export interface components {
              * @description QR code unique identifier
              */
             id: string;
+            /** @description Name of the QR code */
+            name: string;
             /**
              * Format: uuid
              * @description ID of the user who owns this QR code
@@ -274,6 +278,10 @@ export interface components {
             updated_at: string;
             /** @description Unique slug for accessing this QR code */
             slug: string;
+        };
+        QrCodeWithContent: {
+            qrcode: components["schemas"]["QrCode"];
+            content?: components["schemas"]["Content"];
         };
         Content: {
             /**
@@ -516,7 +524,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["QrCode"];
+                    "application/json": components["schemas"]["QrCodeWithContent"];
                 };
             };
             401: components["responses"]["Unauthorized"];

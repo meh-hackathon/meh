@@ -8,16 +8,12 @@ import {
 	Switch,
 } from "solid-js";
 import { api } from "./api/api";
-import type { AppError } from "./api/models";
+import type { AppError, QrCode } from "./api/models";
+import { SearchIcon } from "./assets/icons";
 import { ErrorComponent } from "./components/ErrorComponent";
 import { LoadingComponent } from "./components/Loading";
-
-// QR Code type
-interface QrCode {
-	slug: string;
-	created_at: string;
-	updated_at: string;
-}
+import { Modal } from "./components/Modal";
+import { CreateQrCodeModal } from "./components/modals/CreateQrCodeModal";
 
 // Generate QR Code URL (using a free QR code service)
 const generateQrCodeUrl = (slug: string, size: number = 150) => {
@@ -51,6 +47,9 @@ export function QrCodes() {
 	const [selectedQrCodes, setSelectedQrCodes] = createSignal<Set<string>>(
 		new Set(),
 	);
+
+	const [showCreateModal, setShowCreateModal] = createSignal(false);
+
 	const [searchTerm, setSearchTerm] = createSignal("");
 
 	// Sorted and filtered QR codes
@@ -123,6 +122,14 @@ export function QrCodes() {
 
 	return (
 		<div class="w-full min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-8 px-4">
+			<Modal
+				isOpen={showCreateModal()}
+				onClose={() => setShowCreateModal(false)}
+				title="Create QR Code"
+			>
+				<CreateQrCodeModal close={() => setShowCreateModal(false)} />
+			</Modal>
+
 			<Switch>
 				<Match when={isLoading()}>
 					<div class="flex items-center justify-center min-h-[60vh]">
@@ -155,19 +162,7 @@ export function QrCodes() {
 							<div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
 								{/* Search */}
 								<div class="relative flex-1 max-w-md">
-									<svg
-										class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-										/>
-									</svg>
+									<SearchIcon class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
 									<input
 										type="text"
 										placeholder="Search QR codes..."
@@ -261,9 +256,9 @@ export function QrCodes() {
 										<div class="text-center">
 											<h3
 												class="font-semibold text-gray-800 mb-1 truncate"
-												title={qrCode.slug}
+												title={qrCode.name}
 											>
-												{qrCode.slug}
+												{qrCode.name}
 											</h3>
 											<p class="text-sm text-gray-500 mb-2">
 												Updated {formatDate(qrCode.updated_at)}
@@ -421,7 +416,10 @@ export function QrCodes() {
 							Create your first dynamic QR code to get started. Add messages,
 							images, and links that can surprise your audience!
 						</p>
-						<button class="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+						<button
+							onClick={() => setShowCreateModal(true)}
+							class="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+						>
 							Create Your First QR Code
 						</button>
 					</div>

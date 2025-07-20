@@ -1,668 +1,671 @@
 openapi: 3.0.0
 
 info:
-  title: MEH
-  version: 1.0.0
-  description: REST API for the MEH application
+    title: MEH
+    version: 1.0.0
+    description: REST API for the MEH application
 servers:
-  - url: /api
+    - url: /api
 
 paths:
-  /me:
-    get:
-      summary: Get the current user
-      description: Get the current user information
-      operationId: getCurrentUser
-      tags:
-        - user
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        500:
-          $ref: "#/components/responses/InternalServerError"
+    /me:
+        get:
+            summary: Get the current user
+            description: Get the current user information
+            operationId: getCurrentUser
+            tags:
+                - user
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/User"
+                401:
+                    $ref: "#/components/responses/Unauthorized"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
 
-  /login:
-    post:
-      summary: Login with username and password
-      description: Authenticate a user using username and password
-      operationId: loginUser
-      tags:
-        - auth
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PasswordGrantRequest"
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Token"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        500:
-          $ref: "#/components/responses/InternalServerError"
+    /login:
+        post:
+            summary: Login with username and password
+            description: Authenticate a user using username and password
+            operationId: loginUser
+            tags:
+                - auth
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/PasswordGrantRequest"
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Token"
+                401:
+                    $ref: "#/components/responses/Unauthorized"
+                403:
+                    $ref: "#/components/responses/Forbidden"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
 
-  /qrcodes:
-    post:
-      summary: Create a new QR code
-      description: Create a new QR code for the current user
-      operationId: createQrCode
-      tags:
-        - qrcode
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/QrCodeCreateRequest"
-      responses:
-        201:
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/QrCode"
-        400:
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AppError"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-    get:
-      summary: Get all QR codes
-      description: Retrieve all QR codes belonging to the current user
-      operationId: getQrCodes
-      tags:
-        - qrcode
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/QrCode"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        500:
-          $ref: "#/components/responses/InternalServerError"
+    /qrcodes:
+        post:
+            summary: Create a new QR code
+            description: Create a new QR code for the current user
+            operationId: createQrCode
+            tags:
+                - qrcode
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/QrCodeCreateRequest"
+            responses:
+                201:
+                    description: Created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/QrCode"
+                400:
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AppError"
+                401:
+                    $ref: "#/components/responses/Unauthorized"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+        get:
+            summary: Get all QR codes
+            description: Retrieve all QR codes belonging to the current user
+            operationId: getQrCodes
+            tags:
+                - qrcode
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/QrCode"
+                401:
+                    $ref: "#/components/responses/Unauthorized"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
 
-  /qrcodes/{id}:
-    get:
-      summary: Get a QR code by ID
-      description: Retrieve a specific QR code by its unique identifier
-      operationId: getQrCodeById
-      tags:
-        - qrcode
-      parameters:
-        - name: id
-          in: path
-          description: QR code unique identifier
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/QrCode"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AppError"
-        500:
-          $ref: "#/components/responses/InternalServerError"
+    /qrcodes/{id}:
+        get:
+            summary: Get a QR code by ID
+            description: Retrieve a specific QR code by its unique identifier
+            operationId: getQrCodeById
+            tags:
+                - qrcode
+            parameters:
+                - name: id
+                  in: path
+                  description: QR code unique identifier
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/QrCode"
+                401:
+                    $ref: "#/components/responses/Unauthorized"
+                403:
+                    $ref: "#/components/responses/Forbidden"
+                404:
+                    description: Not Found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AppError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
 
-  /qrcodes/{slug}/by-slug:
-    get:
-      summary: Get a QR code by Slug
-      description: Retrieve a specific QR code by its unique slug
-      operationId: getQrCodeBySlug
-      tags:
-        - qrcode
-      parameters:
-        - name: slug
-          in: path
-          description: QR code unique slug
-          required: true
-          schema:
-            type: string
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/QrCodeWithContent"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AppError"
-        500:
-          $ref: "#/components/responses/InternalServerError"
+    /qrcodes/{slug}/by-slug:
+        get:
+            summary: Get a QR code by Slug
+            description: Retrieve a specific QR code by its unique slug
+            operationId: getQrCodeBySlug
+            tags:
+                - qrcode
+            parameters:
+                - name: slug
+                  in: path
+                  description: QR code unique slug
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/QrCodeWithContent"
+                401:
+                    $ref: "#/components/responses/Unauthorized"
+                403:
+                    $ref: "#/components/responses/Forbidden"
+                404:
+                    description: Not Found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AppError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
 
-  /qrcodes/{qrCodeId}/content:
-    get:
-      summary: Get QR code content
-      description: Retrieve all content items linked to a specific QR code
-      operationId: getQrCodeContent
-      tags:
-        - qrcode
-      parameters:
-        - name: qrCodeId
-          in: path
-          description: QR code unique identifier
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Content"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          description: QR code not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AppError"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-    post:
-      summary: Link content to QR code
-      description: Link a content item to a QR code
-      operationId: linkContentToQrCode
-      tags:
-        - content
-      parameters:
-        - name: qrCodeId
-          in: path
-          description: QR code unique identifier
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/LinkContentRequest"
-      responses:
-        201:
-          description: Content successfully linked to QR code
-        400:
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AppError"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          description: Content or QR code not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AppError"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-    delete:
-      summary: Unlink content from QR code
-      description: Remove the link between a content item and QR code
-      operationId: unlinkContentFromQrCode
-      tags:
-        - content
-      parameters:
-        - name: qrCodeId
-          in: path
-          description: QR code unique identifier
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/LinkContentRequest"
-      responses:
-        204:
-          description: Content successfully unlinked from QR code
-        400:
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AppError"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          description: Content or QR code not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AppError"
-        500:
-          $ref: "#/components/responses/InternalServerError"
+    /qrcodes/{qrCodeId}/content:
+        get:
+            summary: Get QR code content
+            description: Retrieve all content items linked to a specific QR code
+            operationId: getQrCodeContent
+            tags:
+                - qrcode
+            parameters:
+                - name: qrCodeId
+                  in: path
+                  description: QR code unique identifier
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Content"
+                401:
+                    $ref: "#/components/responses/Unauthorized"
+                403:
+                    $ref: "#/components/responses/Forbidden"
+                404:
+                    description: QR code not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AppError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+        post:
+            summary: Link content to QR code
+            description: Link a content item to a QR code
+            operationId: linkContentToQrCode
+            tags:
+                - content
+            parameters:
+                - name: qrCodeId
+                  in: path
+                  description: QR code unique identifier
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/LinkContentRequest"
+            responses:
+                201:
+                    description: Content successfully linked to QR code
+                400:
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AppError"
+                401:
+                    $ref: "#/components/responses/Unauthorized"
+                403:
+                    $ref: "#/components/responses/Forbidden"
+                404:
+                    description: Content or QR code not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AppError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+        delete:
+            summary: Unlink content from QR code
+            description: Remove the link between a content item and QR code
+            operationId: unlinkContentFromQrCode
+            tags:
+                - content
+            parameters:
+                - name: qrCodeId
+                  in: path
+                  description: QR code unique identifier
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/LinkContentRequest"
+            responses:
+                204:
+                    description: Content successfully unlinked from QR code
+                400:
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AppError"
+                401:
+                    $ref: "#/components/responses/Unauthorized"
+                403:
+                    $ref: "#/components/responses/Forbidden"
+                404:
+                    description: Content or QR code not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AppError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
 
-  /content:
-    post:
-      summary: Create new content
-      description: Create a new content item for the current user
-      operationId: createContent
-      tags:
-        - content
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ContentCreateRequest"
-      responses:
-        201:
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Content"
-        400:
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AppError"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-    get:
-      summary: Get all content
-      description: Retrieve all content items belonging to the current user
-      operationId: getContentItems
-      tags:
-        - content
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Content"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        500:
-          $ref: "#/components/responses/InternalServerError"
+    /content:
+        post:
+            summary: Create new content
+            description: Create a new content item for the current user
+            operationId: createContent
+            tags:
+                - content
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ContentCreateRequest"
+            responses:
+                201:
+                    description: Created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Content"
+                400:
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AppError"
+                401:
+                    $ref: "#/components/responses/Unauthorized"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+        get:
+            summary: Get all content
+            description: Retrieve all content items belonging to the current user
+            operationId: getContentItems
+            tags:
+                - content
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Content"
+                401:
+                    $ref: "#/components/responses/Unauthorized"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
 
-  /content/{id}:
-    get:
-      summary: Get content by ID
-      description: Retrieve a specific content item by its unique identifier
-      operationId: getContentById
-      tags:
-        - content
-      parameters:
-        - name: id
-          in: path
-          description: Content unique identifier
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Content"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AppError"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-    put:
-      summary: Update content
-      description: Update an existing content item
-      operationId: updateContent
-      tags:
-        - content
-      parameters:
-        - name: id
-          in: path
-          description: Content unique identifier
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ContentUpdateRequest"
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Content"
-        400:
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AppError"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AppError"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-    delete:
-      summary: Delete content
-      description: Delete (soft-delete) a content item
-      operationId: deleteContent
-      tags:
-        - content
-      parameters:
-        - name: id
-          in: path
-          description: Content unique identifier
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        204:
-          description: No Content
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AppError"
-        500:
-          $ref: "#/components/responses/InternalServerError"
+    /content/{id}:
+        get:
+            summary: Get content by ID
+            description: Retrieve a specific content item by its unique identifier
+            operationId: getContentById
+            tags:
+                - content
+            parameters:
+                - name: id
+                  in: path
+                  description: Content unique identifier
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Content"
+                401:
+                    $ref: "#/components/responses/Unauthorized"
+                403:
+                    $ref: "#/components/responses/Forbidden"
+                404:
+                    description: Not Found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AppError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+        put:
+            summary: Update content
+            description: Update an existing content item
+            operationId: updateContent
+            tags:
+                - content
+            parameters:
+                - name: id
+                  in: path
+                  description: Content unique identifier
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ContentUpdateRequest"
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Content"
+                400:
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AppError"
+                401:
+                    $ref: "#/components/responses/Unauthorized"
+                403:
+                    $ref: "#/components/responses/Forbidden"
+                404:
+                    description: Not Found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AppError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+        delete:
+            summary: Delete content
+            description: Delete (soft-delete) a content item
+            operationId: deleteContent
+            tags:
+                - content
+            parameters:
+                - name: id
+                  in: path
+                  description: Content unique identifier
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+            responses:
+                204:
+                    description: No Content
+                401:
+                    $ref: "#/components/responses/Unauthorized"
+                403:
+                    $ref: "#/components/responses/Forbidden"
+                404:
+                    description: Not Found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AppError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
 
 components:
-  responses:
-    InternalServerError:
-      description: Internal Server Error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/AppError"
-    Unauthorized:
-      description: Unauthorized
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/AppError"
-    Forbidden:
-      description: Forbidden
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/AppError"
+    responses:
+        InternalServerError:
+            description: Internal Server Error
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/AppError"
+        Unauthorized:
+            description: Unauthorized
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/AppError"
+        Forbidden:
+            description: Forbidden
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/AppError"
 
-  schemas:
-    AppError:
-      type: object
-      properties:
-        code:
-          type: string
-        api_message:
-          type: string
-        status_code:
-          type: integer
-          format: int32
-        values:
-          type: object
-          additionalProperties: true
-      required:
-        - code
-        - status_code
+    schemas:
+        AppError:
+            type: object
+            properties:
+                code:
+                    type: string
+                api_message:
+                    type: string
+                status_code:
+                    type: integer
+                    format: int32
+                values:
+                    type: object
+                    additionalProperties: true
+            required:
+                - code
+                - status_code
 
-    User:
-      type: object
-      properties:
-        id:
-          type: string
-          description: User ID
-        username:
-          type: string
-          description: Username of the user
-        email:
-          type: string
-          description: Email address of the user
-        roles:
-          type: array
-          items:
-            $ref: "#/components/schemas/Role"
-        metadata:
-          type: object
-          description: Additional metadata about the user
-          additionalProperties: true
-      required: [id, username]
+        User:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: User ID
+                username:
+                    type: string
+                    description: Username of the user
+                email:
+                    type: string
+                    description: Email address of the user
+                roles:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Role"
+                metadata:
+                    type: object
+                    description: Additional metadata about the user
+                    additionalProperties: true
+            required: [id, username]
 
-    Role:
-      type: string
-      enum:
-        - admin
+        Role:
+            type: string
+            enum:
+                - admin
 
-    PasswordGrantRequest:
-      type: object
-      properties:
-        grant_type:
-          type: string
-          enum: [password]
-          description: The grant type for password authentication
-        username:
-          type: string
-          description: Username of the user
-        password:
-          type: string
-          description: Password of the user
-      required: [grant_type, username, password]
+        PasswordGrantRequest:
+            type: object
+            properties:
+                grant_type:
+                    type: string
+                    enum: [password]
+                    description: The grant type for password authentication
+                username:
+                    type: string
+                    description: Username of the user
+                password:
+                    type: string
+                    description: Password of the user
+            required: [grant_type, username, password]
 
-    RefreshTokenGrantRequest:
-      type: object
-      properties:
-        grant_type:
-          type: string
-          enum: [refresh_token]
-          description: The grant type for refreshing the token
-        refresh_token:
-          type: string
-          description: The refresh token to use for obtaining a new access token
-      required: [grant_type, refresh_token]
+        RefreshTokenGrantRequest:
+            type: object
+            properties:
+                grant_type:
+                    type: string
+                    enum: [refresh_token]
+                    description: The grant type for refreshing the token
+                refresh_token:
+                    type: string
+                    description: The refresh token to use for obtaining a new access token
+            required: [grant_type, refresh_token]
 
-    GrantRequest:
-      anyOf:
-        - $ref: "#/components/schemas/PasswordGrantRequest"
-        - $ref: "#/components/schemas/RefreshTokenGrantRequest"
+        GrantRequest:
+            anyOf:
+                - $ref: "#/components/schemas/PasswordGrantRequest"
+                - $ref: "#/components/schemas/RefreshTokenGrantRequest"
 
-    Token:
-      type: object
-      properties:
-        access_token:
-          type: string
-          description: The access token for the user
-        refresh_token:
-          type: string
-          description: The refresh token for the user
-        expires_in:
-          type: integer
-          description: The number of seconds until the access token expires
-        token_type:
-          type: string
-          description: The type of the token (e.g., Bearer)
-      required: [access_token, refresh_token, expires_in, token_type]
+        Token:
+            type: object
+            properties:
+                access_token:
+                    type: string
+                    description: The access token for the user
+                refresh_token:
+                    type: string
+                    description: The refresh token for the user
+                expires_in:
+                    type: integer
+                    description: The number of seconds until the access token expires
+                token_type:
+                    type: string
+                    description: The type of the token (e.g., Bearer)
+            required: [access_token, refresh_token, expires_in, token_type]
 
-    QrCodeCreateRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Name of the QR code
-        slug:
-          type: string
-          description: Custom slug for the QR code (optional)
-      required: [name]
+        QrCodeCreateRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: Name of the QR code
+                slug:
+                    type: string
+                    description: Custom slug for the QR code (optional)
+            required: [name]
 
-    QrCode:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: QR code unique identifier
-        owner_id:
-          type: string
-          format: uuid
-          description: ID of the user who owns this QR code
-        created_at:
-          type: string
-          format: date-time
-          description: Creation timestamp
-        updated_at:
-          type: string
-          format: date-time
-          description: Last update timestamp
-        slug:
-          type: string
-          description: Unique slug for accessing this QR code
-      required: [id, owner_id, created_at, updated_at, slug]
+        QrCode:
+            type: object
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                    description: QR code unique identifier
+                name:
+                    type: string
+                    description: Name of the QR code
+                owner_id:
+                    type: string
+                    format: uuid
+                    description: ID of the user who owns this QR code
+                created_at:
+                    type: string
+                    format: date-time
+                    description: Creation timestamp
+                updated_at:
+                    type: string
+                    format: date-time
+                    description: Last update timestamp
+                slug:
+                    type: string
+                    description: Unique slug for accessing this QR code
+            required: [id, owner_id, created_at, updated_at, slug, name]
 
-    QrCodeWithContent:
-      type: object
-      properties:
-        qrcode:
-          $ref: "#/components/schemas/QrCode"
-        content:
-          $ref: "#/components/schemas/Content"
-      required: [qrcode]
+        QrCodeWithContent:
+            type: object
+            properties:
+                qrcode:
+                    $ref: "#/components/schemas/QrCode"
+                content:
+                    $ref: "#/components/schemas/Content"
+            required: [qrcode]
 
-    Content:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: Content unique identifier
-        owner_id:
-          type: string
-          format: uuid
-          description: ID of the user who owns this content
-        created_at:
-          type: string
-          format: date-time
-          description: Creation timestamp
-        updated_at:
-          type: string
-          format: date-time
-          description: Last update timestamp
-        type:
-          type: string
-          description: Type of content
-        data:
-          type: string
-          description: Content data
-      required: [id, owner_id, created_at, updated_at, type, data]
+        Content:
+            type: object
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                    description: Content unique identifier
+                owner_id:
+                    type: string
+                    format: uuid
+                    description: ID of the user who owns this content
+                created_at:
+                    type: string
+                    format: date-time
+                    description: Creation timestamp
+                updated_at:
+                    type: string
+                    format: date-time
+                    description: Last update timestamp
+                type:
+                    type: string
+                    description: Type of content
+                data:
+                    type: string
+                    description: Content data
+            required: [id, owner_id, created_at, updated_at, type, data]
 
-    ContentCreateRequest:
-      type: object
-      properties:
-        type:
-          type: string
-          description: Type of content
-        data:
-          type: string
-          description: Content data
-      required: [type, data]
+        ContentCreateRequest:
+            type: object
+            properties:
+                type:
+                    type: string
+                    description: Type of content
+                data:
+                    type: string
+                    description: Content data
+            required: [type, data]
 
-    ContentUpdateRequest:
-      type: object
-      properties:
-        type:
-          type: string
-          description: Type of content
-        data:
-          type: string
-          description: Content data
+        ContentUpdateRequest:
+            type: object
+            properties:
+                type:
+                    type: string
+                    description: Type of content
+                data:
+                    type: string
+                    description: Content data
 
-    LinkContentRequest:
-      type: object
-      properties:
-        content_id:
-          type: string
-          format: uuid
-          description: Content unique identifier to link
-      required: [content_id]
+        LinkContentRequest:
+            type: object
+            properties:
+                content_id:
+                    type: string
+                    format: uuid
+                    description: Content unique identifier to link
+            required: [content_id]

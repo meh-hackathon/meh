@@ -100,6 +100,9 @@ type QrCode struct {
 	// Id QR code unique identifier
 	Id openapi_types.UUID `json:"id"`
 
+	// Name Name of the QR code
+	Name string `json:"name"`
+
 	// OwnerId ID of the user who owns this QR code
 	OwnerId openapi_types.UUID `json:"owner_id"`
 

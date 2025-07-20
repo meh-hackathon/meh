@@ -5,29 +5,12 @@ export  function NotFound() {
     const navigate = useNavigate();
 
     return (
-        <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
+        <div class="w-full min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
             <div class="max-w-lg w-full text-center">
                 {/* 404 Animation */}
                 <div class="relative mb-8">
                     <div class="text-8xl md:text-9xl font-black text-gray-200 select-none">
                         404
-                    </div>
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <div class="w-16 h-16 md:w-20 md:h-20 bg-indigo-500 rounded-full animate-bounce flex items-center justify-center">
-                            <svg
-                                class="w-8 h-8 md:w-10 md:h-10 text-white"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.463.898-6.05 2.366M15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
-                                />
-                            </svg>
-                        </div>
                     </div>
                 </div>
 
