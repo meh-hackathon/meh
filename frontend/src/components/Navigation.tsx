@@ -1,4 +1,4 @@
-import { type Component, createSignal, onCleanup, Show } from "solid-js";
+import { createSignal, onCleanup, Show } from "solid-js";
 import { useUser } from "../stores/user";
 import { Modal } from "./Modal";
 import LoginModal from "./modals/LoginModal";

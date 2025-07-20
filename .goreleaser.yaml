@@ -4,6 +4,7 @@ version: 2
 before:
   hooks:
     - "sh -c \"cd backend && go mod tidy\""
+    - "sh -c \"cd frontend && pnpm install && pnpm build\""
 
 builds:
   - dir: "./backend"
