@@ -20,7 +20,7 @@ builds:
 
 # Container Image build
 kos:
-  - repository: "ghcr.io/meh-hackathon/meh/"
+  - repository: "ghcr.io/meh-hackathon/meh"
     base_image: "alpine:3.22.1"
     tags:
       - "{{ .Version }}"
