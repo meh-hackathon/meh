@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/meh-hackathon/meh/apperror"
+	"github.com/meh-hackathon/meh/auth"
 	"github.com/meh-hackathon/meh/config"
 	"github.com/meh-hackathon/meh/httpx"
 	"github.com/meh-hackathon/meh/logger"
@@ -39,10 +40,15 @@ func New() (*Server, error) {
 	})
 
 	// api
-	// todo: add some sort of authentication service
 	apiMux := http.NewServeMux()
 	apiMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { httpx.WriteError(w, ErrNotFound) })
-	mux.Handle("/api/", http.StripPrefix("/api", apiMux))
+	mux.Handle("/api/", http.StripPrefix("/api", auth.Middleware(config.Secret)(apiMux)))
+
+	// auth
+	err = auth.OAuthHandler(apiMux, auth.WithLocalAuthenticator)
+	if err != nil {
+		return nil, err
+	}
 
 	addr := "0.0.0.0:"
 	if runtime.GOOS == "windows" {
