@@ -6,7 +6,7 @@ before:
     - "sh -c \"cd backend && go mod tidy\""
 
 builds:
-  - main: "./backend/cmd/server" 
+  - main: "./backend"
     env:
       - "CGO_ENABLED=0"
     goos:
