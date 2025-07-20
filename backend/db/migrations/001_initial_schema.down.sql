@@ -1,5 +1,7 @@
 DROP TABLE qr_code_to_content_relation;
 DROP TABLE qr_codes;
 DROP TABLE contents;
+DROP TYPE content_type;
 DROP TABLE user_credentials;
 DROP TABLE users;
+DROP TYPE content_type;
