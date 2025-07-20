@@ -29,7 +29,9 @@ func main() {
 	srv, err := server.New()
 	mustSetup(err)
 
-	logger.Info("server started", "after", time.Since(start))
+	logger.Info("setup done", "after", time.Since(start))
+
+	srv.Start()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
