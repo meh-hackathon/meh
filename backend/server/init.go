@@ -18,7 +18,9 @@ import (
 //go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -config ../codegen-conf.yml ../openapi.yml
 
 var (
-	ErrNotFound = apperror.Define("api:not_found", "API endpoint not found").WithStatus(http.StatusNotFound)
+	ErrNotFound            = apperror.Define("api:not_found", "API endpoint not found").WithStatus(http.StatusNotFound)
+	ErrInternalServerError = apperror.Define("api:internal_server_error", "Internal Server Error").WithStatus(http.StatusInternalServerError)
+	ErrForbidden           = apperror.Define("api:forbidden", "Access denied").WithStatus(http.StatusForbidden)
 )
 
 type Server struct {

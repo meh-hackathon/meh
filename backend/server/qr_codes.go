@@ -2,6 +2,7 @@ package server
 
 import (
 	"crypto/rand"
+	"database/sql"
 	"math/big"
 	"net/http"
 
@@ -74,14 +75,76 @@ func (*Server) CreateQrCode(w http.ResponseWriter, r *http.Request) {
 	httpx.WriteJSON(w, http.StatusCreated, qrCode)
 }
 
-func (*Server) GetQrCodeById(w http.ResponseWriter, r *http.Request, uuid types.UUID) {
-	logger.Info("GetQrCode")
+func (*Server) GetQrCodeById(w http.ResponseWriter, r *http.Request, id types.UUID) {
+	user, err := auth.GetUser(r.Context())
+	if err != nil {
+		httpx.WriteError(w, err)
+		return
+	}
+
+	var qrCode db.QrCode
+	err = db.DB.QueryRowx(
+		"SELECT id, owner_id, created_at, updated_at, slug FROM qr_codes WHERE id = $1",
+		id,
+	).StructScan(&qrCode)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			httpx.WriteError(w, ErrNotFound.WithMessage("QR code not found"))
+		} else {
+			logger.Error("Failed to get QR code by ID", "error", err)
+			httpx.WriteError(w, ErrInternalServerError.WithCause(err))
+		}
+		return
+	}
+
+	if qrCode.OwnerID.String() != user.ID.String() {
+		httpx.WriteError(w, ErrForbidden.WithMessage("You don't have permission to access this QR code"))
+		return
+	}
+
+	httpx.WriteJSON(w, http.StatusOK, qrCode)
 }
 
 func (*Server) GetQrCodeBySlug(w http.ResponseWriter, r *http.Request, slug string) {
-	logger.Info("GetQrCode")
+	var qrCode db.QrCode
+	err := db.DB.QueryRowx(
+		"SELECT id, owner_id, created_at, updated_at, slug FROM qr_codes WHERE slug = $1",
+		slug,
+	).StructScan(&qrCode)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			httpx.WriteError(w, ErrNotFound.WithMessage("QR code not found"))
+		} else {
+			logger.Error("Failed to get QR code by slug", "error", err)
+			httpx.WriteError(w, ErrInternalServerError.WithCause(err))
+		}
+		return
+	}
+
+	httpx.WriteJSON(w, http.StatusOK, qrCode)
 }
 
 func (*Server) GetQrCodes(w http.ResponseWriter, r *http.Request) {
-	logger.Info("GetQrCodes")
+	user, err := auth.GetUser(r.Context())
+	if err != nil {
+		httpx.WriteError(w, err)
+		return
+	}
+
+	qrCodes := []db.QrCode{}
+	err = db.DB.Select(
+		&qrCodes,
+		"SELECT id, owner_id, created_at, updated_at, slug FROM qr_codes WHERE owner_id = $1 ORDER BY created_at DESC",
+		user.ID,
+	)
+
+	if err != nil {
+		logger.Error("Failed to get user's QR codes", "error", err)
+		httpx.WriteError(w, ErrInternalServerError.WithCause(err))
+		return
+	}
+
+	httpx.WriteJSON(w, http.StatusOK, qrCodes)
 }
