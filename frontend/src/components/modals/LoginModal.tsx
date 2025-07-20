@@ -6,22 +6,14 @@ import { Button } from "../Button";
 import { TextInput } from "../TextInput";
 
 export function LoginModal() {
-	const [email, setEmail] = createSignal("");
+	const [username, setUsername] = createSignal("");
+	const [usernameError, setUsernameError] = createSignal("");
 	const [password, setPassword] = createSignal("");
-	const [emailError, setEmailError] = createSignal("");
 	const [passwordError, setPasswordError] = createSignal("");
 	const [isSubmitting, setIsSubmitting] = createSignal(false);
 
 	const notification = useNotification;
 	const navigate = useNavigate();
-
-	// Email validation
-	const validateEmail = (value: string): string => {
-		if (!value.trim()) return "Email is required";
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		if (!emailRegex.test(value)) return "Please enter a valid email address";
-		return "";
-	};
 
 	// Password validation
 	const validatePassword = (value: string): string => {
@@ -30,23 +22,28 @@ export function LoginModal() {
 		return "";
 	};
 
+	const validateUsername = (value: string): string => {
+	    if (!value.trim()) return "username is required";
+	    return ""
+	}
+
 	// Handle form submission
 	const handleSubmit = async (e: Event) => {
 		e.preventDefault();
 
 		// Clear previous errors
-		setEmailError("");
+		setUsernameError("");
 		setPasswordError("");
 
 		// Validate fields
-		const emailErr = validateEmail(email());
+		const usernameErr = validateUsername(username());
 		const passwordErr = validatePassword(password());
 
-		if (emailErr) setEmailError(emailErr);
+		if (usernameErr) setUsernameError(usernameErr);
 		if (passwordErr) setPasswordError(passwordErr);
 
 		// Stop if validation fails
-		if (emailErr || passwordErr) return;
+		if (usernameErr || passwordErr) return;
 
 		// Submit login request
 		setIsSubmitting(true);
@@ -60,7 +57,7 @@ export function LoginModal() {
 		try {
 			const response = await api.login({
 				grant_type: "password",
-				username: email(),
+				username: username(),
 				password: password(),
 			});
 
@@ -106,11 +103,10 @@ export function LoginModal() {
 		}
 	};
 
-	// Real-time email validation
-	const handleEmailChange = (value: string) => {
-		setEmail(value);
-		if (emailError()) {
-			setEmailError(validateEmail(value));
+	const handleUsernameChange = (value: string) => {
+		setUsername(value);
+		if (usernameError()) {
+			setUsernameError(validateUsername(value));
 		}
 	};
 
@@ -126,16 +122,16 @@ export function LoginModal() {
 		<div class="w-3xl mx-auto">
 				{/* Login Form */}
 				<form onSubmit={handleSubmit} class="space-y-4">
-					{/* Email Input */}
+					{/* Username Input */}
 					<TextInput
-						label="Email"
-						value={email}
-						setValue={handleEmailChange}
-						error={emailError()}
-						placeholder="Enter your email"
+						label="Username"
+						value={username}
+						setValue={handleUsernameChange}
+						error={usernameError()}
+						placeholder="Enter your username"
 						disabled={isSubmitting()}
 						attributes={{
-							type: "email",
+							type: "text",
 							autocomplete: "email",
 							required: true,
 						}}
@@ -161,7 +157,7 @@ export function LoginModal() {
 						type="submit"
 						label="Sign In"
 						color="primary"
-						disabled={isSubmitting() || !email() || !password()}
+						disabled={isSubmitting() || !username() || !password()}
 						loading={isSubmitting() ? "Signing in..." : false}
 						class="w-full"
 					/>

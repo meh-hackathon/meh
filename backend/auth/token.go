@@ -57,7 +57,7 @@ func (handler *OAuthHandler) generateTokenPair(ctx context.Context, user *User) 
 	id, _ = uuid.NewV7()
 	_, err = db.ExecContext(
 		ctx,
-		"INSERT INTO auth_token (id, user_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at) VALUES ($1, $2, $3, $4, $5, $6)",
+		"INSERT INTO auth_tokens (id, user_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at) VALUES ($1, $2, $3, $4, $5, $6)",
 		id.String(),
 		user.ID,
 		accessToken,
@@ -67,15 +67,6 @@ func (handler *OAuthHandler) generateTokenPair(ctx context.Context, user *User) 
 	)
 	if err != nil {
 		return TokenResponse{}, ErrInternal.WithMessage("failed to insert auth token").WithOrigin().WithCause(err)
-	}
-
-	_, err = db.ExecContext(
-		ctx,
-		`UPDATE "user" SET last_login_at = NOW() WHERE id = $1`,
-		user.ID,
-	)
-	if err != nil {
-		return TokenResponse{}, ErrInternal.WithMessage("failed to update user last login").WithOrigin().WithCause(err)
 	}
 
 	return TokenResponse{

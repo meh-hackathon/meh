@@ -43,6 +43,8 @@ func main() {
 	case "down":
 		downCommand.Parse(os.Args[2:])
 		handleDownCommand()
+	case "reset":
+		handleResetCommand()
 	case "help":
 		printUsage()
 	default:
@@ -50,6 +52,17 @@ func main() {
 		printUsage()
 		os.Exit(1)
 	}
+}
+
+func handleResetCommand() {
+	fmt.Println("Resetting database to initial state...")
+	_, err := db.Exec(`DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;`)
+	if err != nil {
+		logger.Error("Failed to reset database", "error", err)
+		os.Exit(1)
+	}
+	fmt.Println("Database reset successful.")
+	fmt.Println("You can now run 'migrate up' to apply migrations.")
 }
 
 func handleUpCommand() {

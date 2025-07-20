@@ -60,7 +60,7 @@ func (handler *OAuthHandler) HandlePasswordGrant(ctx context.Context, req TokenR
 		err  error
 	}
 
-	ctx, cancel := context.WithCancel(ctx)
+	retrieveCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	var wg sync.WaitGroup
@@ -69,7 +69,7 @@ func (handler *OAuthHandler) HandlePasswordGrant(ctx context.Context, req TokenR
 		wg.Add(1)
 		go func(auth Authenticator) {
 			defer wg.Done()
-			user, err := auth.authenticate(ctx, req.Username, req.Password)
+			user, err := auth.authenticate(retrieveCtx, req.Username, req.Password)
 			resultChannel <- result{user: user, err: err}
 		}(authenticator)
 	}
