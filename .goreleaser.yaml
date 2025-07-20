@@ -4,6 +4,7 @@ version: 2
 before:
   hooks:
     - "sh -c \"cd backend && go mod tidy\""
+    - "echo 'VITE_BACKEND_HOST=\"\"' > frontend/.env"
     - "sh -c \"cd frontend && pnpm install && pnpm build\""
 
 builds:
