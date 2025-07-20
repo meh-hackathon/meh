@@ -27,11 +27,14 @@ const (
 )
 
 var (
-	Env         environment
-	Secret      []byte
-	Port        int
-	LogLevel    slog.Level
-	DatabaseURL string
+	Env              environment
+	Secret           []byte
+	Port             int
+	LogLevel         slog.Level
+	DatabaseHost     string
+	DatabasePort     string
+	DatabaseUser     string
+	DatabasePassword string
 )
 
 func Load(envFiles ...string) error {
@@ -49,13 +52,19 @@ func Load(envFiles ...string) error {
 
 	env := fallback(os.Getenv("ENV"), "dev")
 	secret := os.Getenv("SECRET")
-	databaseURL := os.Getenv("DATABASE_URL")
+	databaseHost := os.Getenv("DATABASE_HOST")
+	databasePort := os.Getenv("DATABASE_PORT")
+	databaseUser := os.Getenv("DATABASE_USER")
+	databasePassword := os.Getenv("DATABASE_PASSWORD")
 	portStr := fallback(os.Getenv("PORT"), "8080")
 	logLevelStr := fallback(os.Getenv("LOG_LEVEL"), "INFO")
 
 	err := errors.Join(
 		mustHaveMinLen(secret, 32, "SECRET"),
-		mustBeSet(databaseURL, "DATABASE_URL"),
+		mustBeSet(databaseHost, "DATABASE_HOST"),
+		mustBeSet(databasePort, "DATABASE_PORT"),
+		mustBeSet(databaseUser, "DATABASE_USER"),
+		mustBeSet(databasePassword, "DATABASE_PASSWORD"),
 		mustBeInt(portStr, "PORT"),
 		mustBeValidLogLevel(logLevelStr, "LOG_LEVEL"),
 		mustBeOneOf(env, []string{"prod", "dev"}, "ENV"),
@@ -66,7 +75,10 @@ func Load(envFiles ...string) error {
 
 	Env = environment(env)
 	Secret = []byte(secret)
-	DatabaseURL = databaseURL
+	DatabaseHost = databaseHost
+	DatabasePort = databasePort
+	DatabaseUser = databaseUser
+	DatabasePassword = databasePassword
 	Port, _ = strconv.Atoi(portStr)
 	LogLevel, _ = logger.LevelFromString(logLevelStr)
 

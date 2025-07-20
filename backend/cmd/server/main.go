@@ -23,13 +23,16 @@ func main() {
 	err = setupLogger(config.LogLevel)
 	mustSetup(err)
 
-	err = db.Init(config.DatabaseURL)
+	err = db.Init(config.DatabaseHost, config.DatabasePort, config.DatabaseUser, config.DatabasePassword)
+	mustSetup(err)
+
+	err = db.MigrateUp()
 	mustSetup(err)
 
 	srv, err := server.New()
 	mustSetup(err)
 
-	logger.Info("setup done", "after", time.Since(start))
+	logger.Info("Setup done", "after", time.Since(start))
 
 	srv.Start()
 

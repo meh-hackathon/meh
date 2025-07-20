@@ -70,7 +70,7 @@ func New() (*Server, error) {
 
 func (srv *Server) Start() {
 	go func() {
-		logger.Debug("Starting HTTP server", "address", srv.HttpServer.Addr)
+		logger.Info("Starting HTTP server", "address", srv.HttpServer.Addr)
 		err := srv.HttpServer.ListenAndServe()
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			panic(err)
