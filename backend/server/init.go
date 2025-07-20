@@ -44,6 +44,7 @@ func New() (*Server, error) {
 	})
 
 	// api
+	api := API{}
 	apiMux := http.NewServeMux()
 	apiMux.Handle("/", Handler(srv))
 

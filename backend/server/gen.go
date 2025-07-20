@@ -9,8 +9,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // Defines values for PasswordGrantRequestGrantType.
@@ -51,17 +53,29 @@ type PasswordGrantRequest struct {
 // PasswordGrantRequestGrantType The grant type for password authentication
 type PasswordGrantRequestGrantType string
 
-// RefreshTokenGrantRequest defines model for RefreshTokenGrantRequest.
-type RefreshTokenGrantRequest struct {
-	// GrantType The grant type for refreshing the token
-	GrantType RefreshTokenGrantRequestGrantType `json:"grant_type"`
+// QrCode defines model for QrCode.
+type QrCode struct {
+	// CreatedAt Creation timestamp
+	CreatedAt time.Time `json:"created_at"`
 
-	// RefreshToken The refresh token to use for obtaining a new access token
-	RefreshToken string `json:"refresh_token"`
+	// Id QR code unique identifier
+	Id openapi_types.UUID `json:"id"`
+
+	// OwnerId ID of the user who owns this QR code
+	OwnerId openapi_types.UUID `json:"owner_id"`
+
+	// Slug Unique slug for accessing this QR code
+	Slug string `json:"slug"`
+
+	// UpdatedAt Last update timestamp
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// RefreshTokenGrantRequestGrantType The grant type for refreshing the token
-type RefreshTokenGrantRequestGrantType string
+// QrCodeCreateRequest defines model for QrCodeCreateRequest.
+type QrCodeCreateRequest struct {
+	// Slug Custom slug for the QR code (optional)
+	Slug *string `json:"slug,omitempty"`
+}
 
 // Role defines model for Role.
 type Role string
@@ -176,6 +190,9 @@ func (t *TokenRequest) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+// CreateQrCodeJSONRequestBody defines body for CreateQrCode for application/json ContentType.
+type CreateQrCodeJSONRequestBody = QrCodeCreateRequest
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Login with username and password
@@ -184,6 +201,18 @@ type ServerInterface interface {
 	// Get the current user
 	// (GET /me)
 	GetCurrentUser(w http.ResponseWriter, r *http.Request)
+	// Get all QR codes
+	// (GET /qrcodes)
+	GetQrCodes(w http.ResponseWriter, r *http.Request)
+	// Create a new QR code
+	// (POST /qrcodes)
+	CreateQrCode(w http.ResponseWriter, r *http.Request)
+	// Get a QR code by Slug
+	// (GET /qrcodes/by-slug/{slug})
+	GetQrCodeBySlug(w http.ResponseWriter, r *http.Request, slug string)
+	// Get a QR code by ID
+	// (GET /qrcodes/{id})
+	GetQrCodeById(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -214,6 +243,84 @@ func (siw *ServerInterfaceWrapper) GetCurrentUser(w http.ResponseWriter, r *http
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetCurrentUser(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetQrCodes operation middleware
+func (siw *ServerInterfaceWrapper) GetQrCodes(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetQrCodes(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateQrCode operation middleware
+func (siw *ServerInterfaceWrapper) CreateQrCode(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateQrCode(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetQrCodeBySlug operation middleware
+func (siw *ServerInterfaceWrapper) GetQrCodeBySlug(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "slug" -------------
+	var slug string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "slug", r.PathValue("slug"), &slug, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "slug", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetQrCodeBySlug(w, r, slug)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetQrCodeById operation middleware
+func (siw *ServerInterfaceWrapper) GetQrCodeById(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetQrCodeById(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -345,6 +452,10 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 
 	m.HandleFunc("POST "+options.BaseURL+"/login", wrapper.LoginUser)
 	m.HandleFunc("GET "+options.BaseURL+"/me", wrapper.GetCurrentUser)
+	m.HandleFunc("GET "+options.BaseURL+"/qrcodes", wrapper.GetQrCodes)
+	m.HandleFunc("POST "+options.BaseURL+"/qrcodes", wrapper.CreateQrCode)
+	m.HandleFunc("GET "+options.BaseURL+"/qrcodes/by-slug/{slug}", wrapper.GetQrCodeBySlug)
+	m.HandleFunc("GET "+options.BaseURL+"/qrcodes/{id}", wrapper.GetQrCodeById)
 
 	return m
 }
