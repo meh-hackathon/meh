@@ -15,6 +15,8 @@ import (
 	"github.com/meh-hackathon/meh/logger"
 )
 
+//go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -config ../codegen-conf.yml ../openapi.yml
+
 var (
 	ErrNotFound = apperror.Define("api:not_found", "API endpoint not found").WithStatus(http.StatusNotFound)
 )

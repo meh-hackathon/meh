@@ -1,0 +1,170 @@
+openapi: 3.0.0
+
+info:
+    title: MEH
+    version: 1.0.0
+    description: REST API for the MEH application
+servers:
+    - url: /api
+
+paths:
+    /me:
+        get:
+            summary: Get the current user
+            description: Get the current user information
+            operationId: getCurrentUser
+            tags:
+                - user
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/User"
+                401:
+                    $ref: "#/components/responses/Unauthorized"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+
+    /login:
+        post:
+            summary: Login with username and password
+            description: Authenticate a user using username and password
+            operationId: loginUser
+            tags:
+                - auth
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/PasswordGrantRequest"
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Token"
+                401:
+                    $ref: "#/components/responses/Unauthorized"
+                403:
+                    $ref: "#/components/responses/Forbidden"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+
+components:
+    responses:
+        InternalServerError:
+            description: Internal Server Error
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/AppError"
+        Unauthorized:
+            description: Unauthorized
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/AppError"
+        Forbidden:
+            description: Forbidden
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/AppError"
+
+    schemas:
+        AppError:
+            type: object
+            properties:
+                code:
+                    type: string
+                api_message:
+                    type: string
+                status_code:
+                    type: integer
+                    format: int32
+                values:
+                    type: object
+                    additionalProperties: true
+            required:
+                - code
+                - status_code
+
+        User:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: User ID
+                username:
+                    type: string
+                    description: Username of the user
+                email:
+                    type: string
+                    description: Email address of the user
+                roles:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Role"
+                metadata:
+                    type: object
+                    description: Additional metadata about the user
+                    additionalProperties: true
+            required: [id, username]
+
+        Role:
+            type: string
+            enum:
+                - admin
+
+        PasswordGrantRequest:
+            type: object
+            properties:
+                grant_type:
+                    type: string
+                    enum: [password]
+                    description: The grant type for password authentication
+                username:
+                    type: string
+                    description: Username of the user
+                password:
+                    type: string
+                    description: Password of the user
+            required: [grant_type, username, password]
+
+        RefreshTokenGrantRequest:
+            type: object
+            properties:
+                grant_type:
+                    type: string
+                    enum: [refresh_token]
+                    description: The grant type for refreshing the token
+                refresh_token:
+                    type: string
+                    description: The refresh token to use for obtaining a new access token
+            required: [grant_type, refresh_token]
+
+        TokenRequest:
+            anyOf:
+                - $ref: "#/components/schemas/PasswordGrantRequest"
+                - $ref: "#/components/schemas/RefreshTokenGrantRequest"
+
+        Token:
+            type: object
+            properties:
+                access_token:
+                    type: string
+                    description: The access token for the user
+                refresh_token:
+                    type: string
+                    description: The refresh token for the user
+                expires_in:
+                    type: integer
+                    description: The number of seconds until the access token expires
+                token_type:
+                    type: string
+                    description: The type of the token (e.g., Bearer)
+            required: [access_token, refresh_token, expires_in, token_type]
