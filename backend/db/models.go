@@ -16,25 +16,28 @@ type User struct {
 }
 
 type UserCredentials struct {
-	UserID       uuid.UUID `json:"user_id"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	PasswordHash string    `json:"password_hash"`
+	UserID       uuid.UUID `json:"user_id" db:"user_id"`
+	CreatedAt    time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
+	DeletedAt    time.Time `json:"deleted_at" db:"deleted_at"`
+	PasswordHash string    `json:"password_hash" db:"password_hash"`
 }
 
 type QrCode struct {
-	ID        uuid.UUID `json:"id"`
-	OwnerID   uuid.UUID `json:"owner_id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Slug      string    `json:"slug"`
+	ID        uuid.UUID `json:"id" db:"id"`
+	OwnerID   uuid.UUID `json:"owner_id" db:"owner_id"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	DeletedAt time.Time `json:"deleted_at" db:"deleted_at"`
+	Slug      string    `json:"slug" db:"slug"`
 }
 
 type Content struct {
-	ID        uuid.UUID `json:"id"`
-	OwnerID   uuid.UUID `json:"owner_id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Type      string    `json:"type"`
-	Data      string    `json:"data"`
+	ID        uuid.UUID `json:"id" db:"id"`
+	OwnerID   uuid.UUID `json:"owner_id" db:"owner_id"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	DeletedAt time.Time `json:"deleted_at" db:"deleted_at"`
+	Type      string    `json:"type" db:"type"`
+	Data      string    `json:"data" db:"data"`
 }

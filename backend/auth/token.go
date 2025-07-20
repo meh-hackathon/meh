@@ -17,7 +17,7 @@ import (
 var (
 	secretKey            []byte
 	tokenType            = "Bearer"
-	accessTokenLifetime  = 15 * time.Minute   // Default access token lifetime
+	accessTokenLifetime  = 24 * time.Hour     // Default access token lifetime
 	refreshTokenLifetime = 7 * 24 * time.Hour // Default refresh token lifetime
 )
 

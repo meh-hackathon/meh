@@ -13,6 +13,7 @@ CREATE TABLE user_credentials (
     user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     password_hash VARCHAR(255) NOT NULL
 );
 
@@ -49,6 +50,7 @@ CREATE TABLE qr_codes (
     owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     slug VARCHAR(255) NOT NULL UNIQUE
 );
 
@@ -59,6 +61,7 @@ CREATE TABLE contents (
     owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     type content_type,
     data TEXT NOT NULL
 );
